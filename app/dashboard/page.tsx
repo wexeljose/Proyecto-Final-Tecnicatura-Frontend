@@ -1,9 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
-import { Users, CalendarDays, CreditCard, ClipboardList } from "lucide-react";
-import { useSession, getSession } from "next-auth/react"; // 👈 Importamos también getSession
+import { useSession, getSession } from "next-auth/react";
+import {
+    Users,
+    CalendarDays,
+    CreditCard,
+    ClipboardList,
+} from "lucide-react";
+
+import DashboardLayout from "../../components/layout/DashboardLayout";
 
 interface DashboardData {
     sociosActivos: number;
@@ -26,24 +32,20 @@ export default function DashboardPage() {
         pagosPendientes: 0,
     });
 
-    const { data: session } = useSession(); // 👈 Obtenemos la sesión de NextAuth
-    const usuario = session?.user?.name || "Usuario"; // 👈 Si no hay sesión, muestra “Usuario”
+    const { data: session } = useSession();
+    const usuario = session?.user?.name || "Usuario";
 
     useEffect(() => {
         const fetchDashboard = async () => {
             try {
-                // 👇 Obtenemos el token directamente de la sesión
                 const sesionActual = await getSession();
                 const token = sesionActual?.accessToken;
 
-                if (!token) {
-                    console.warn("No se encontró token en la sesión");
-                    return;
-                }
+                if (!token) return;
 
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard`, {
                     headers: {
-                        "Authorization": `Bearer ${token}`,
+                        Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json",
                     },
                 });
@@ -51,8 +53,6 @@ export default function DashboardPage() {
                 if (res.ok) {
                     const data: DashboardData = await res.json();
                     setDatos(data);
-                } else {
-                    console.error("Error al cargar datos del dashboard:", res.statusText);
                 }
             } catch (error) {
                 console.error("Error cargando dashboard:", error);
@@ -60,25 +60,11 @@ export default function DashboardPage() {
         };
 
         fetchDashboard();
-    }, []); // 👈 Llama una sola vez al cargar
+    }, []);
 
     return (
-        <main className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
-            {/* Header */}
-            <header className="bg-white shadow-md py-4 flex justify-between items-center px-8">
-                <div className="flex items-center gap-4">
-                    <Image src="/asur-logo.png" alt="ASUR" width={60} height={60} />
-                    <h1 className="text-2xl font-bold text-blue-900 uppercase tracking-wide">
-                        Asociación de Sordos del Uruguay
-                    </h1>
-                </div>
-                <div className="bg-blue-100 p-3 rounded-full">
-                    <Image src="/user-icon.svg" alt="Usuario" width={30} height={30} />
-                </div>
-            </header>
-
-            {/* Contenido principal */}
-            <section className="flex-grow flex flex-col items-center justify-center p-10">
+        <DashboardLayout>
+            <section className="flex flex-col items-center justify-center py-10">
                 <h2 className="text-lg font-medium mb-2 text-gray-700">
                     Bienvenido/a, <span className="font-semibold">{usuario}</span>
                 </h2>
@@ -106,8 +92,7 @@ export default function DashboardPage() {
                     />
                 </div>
 
-                {/* Botones */}
-                <div className="flex gap-4 mt-10">
+                <div className="flex flex-wrap justify-center gap-4 mt-10">
                     <button className="bg-blue-900 text-white px-6 py-2 rounded-lg hover:bg-blue-800 transition">
                         Nueva Actividad
                     </button>
@@ -119,12 +104,7 @@ export default function DashboardPage() {
                     </button>
                 </div>
             </section>
-
-            {/* Footer */}
-            <footer className="w-full bg-blue-900 text-white py-3 shadow-inner text-center text-sm">
-                © {new Date().getFullYear()} Asociación de Sordos del Uruguay — Desarrollado por MAVATECH.
-            </footer>
-        </main>
+        </DashboardLayout>
     );
 }
 
@@ -137,3 +117,5 @@ function DashboardCard({ icon, title, value }: DashboardCardProps) {
         </div>
     );
 }
+
+

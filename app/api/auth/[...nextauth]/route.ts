@@ -14,7 +14,7 @@ interface BackendLoginResponse {
 
 const handler = NextAuth({
     providers: [
-        // 🔹 Login con Google (opcional)
+        // 🔹 Login con Google
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID ?? "",
             clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
@@ -70,7 +70,7 @@ const handler = NextAuth({
         signIn: "/login",
     },
 
-    // 🔹 Callbacks para manejar token y sesión
+    // 🔹 Callbacks para manejar token, sesión y redirección
     callbacks: {
         async jwt({ token, user }) {
             if (user && "token" in user) {
@@ -78,10 +78,29 @@ const handler = NextAuth({
             }
             return token;
         },
+
         async session({ session, token }) {
             session.accessToken = token.accessToken as string;
             return session;
         },
+
+        // 🔹 Redirección después de login exitoso
+        async redirect({ url, baseUrl }) {
+            console.log("Redirect callback → url:", url, "baseUrl:", baseUrl);
+
+            // Si el flujo viene de Google o si el destino es desconocido, mandamos al dashboard
+            if (url && url.includes("/api/auth/callback/google")) {
+                return `${baseUrl}/dashboard`;
+            }
+
+            // Si ya es una URL interna válida
+            if (url.startsWith("/")) return `${baseUrl}${url}`;
+            if (url.startsWith(baseUrl)) return url;
+
+            // Redirección por defecto
+            return `${baseUrl}/dashboard`;
+        }
+        ,
     },
 
     // 🔹 Clave secreta de NextAuth
