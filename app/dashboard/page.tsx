@@ -9,7 +9,7 @@ import {
     ClipboardList,
 } from "lucide-react";
 
-import DashboardLayout from "../../components/layout/DashboardLayout";
+//import DashboardLayout from "../../components/layout/DashboardLayout";
 
 interface DashboardData {
     sociosActivos: number;
@@ -63,7 +63,6 @@ export default function DashboardPage() {
     }, []);
 
     return (
-        <DashboardLayout>
             <section className="flex flex-col items-center justify-center py-10">
                 <h2 className="text-lg font-medium mb-2 text-gray-700">
                     Bienvenido/a, <span className="font-semibold">{usuario}</span>
@@ -104,7 +103,7 @@ export default function DashboardPage() {
                     </button>
                 </div>
             </section>
-        </DashboardLayout>
+    
     );
 }
 
