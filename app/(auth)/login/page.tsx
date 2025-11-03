@@ -111,7 +111,7 @@ export default function LoginPage() {
                         </div>
 
                         <button
-                            onClick={() => signIn("google")}
+                            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
                             className="mt-4 w-full border border-gray-300 bg-white py-2 rounded-md hover:bg-gray-100 transition flex items-center justify-center gap-2"
                         >
                             <img
@@ -120,9 +120,10 @@ export default function LoginPage() {
                                 className="w-5 h-5"
                             />
                             <span className="text-gray-700 font-medium">
-                Iniciar sesión con Google
-              </span>
+    Iniciar sesión con Google
+  </span>
                         </button>
+
 
                         <div className="text-center mt-4">
                             <a href="#" className="text-sm text-blue-700 hover:underline">

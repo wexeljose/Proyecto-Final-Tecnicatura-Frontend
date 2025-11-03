@@ -1,5 +1,7 @@
+//import DashboardFooter from "../components/layout/DashboardFooter";
 import "./globals.css";
 import Providers from "./providers"; // 👈 Importamos el provider
+import { Toaster } from "react-hot-toast";
 
 export const metadata = {
     title: "ASUR - Panel Administrativo",
@@ -16,6 +18,7 @@ export default function RootLayout({
         <body>
         <Providers>
             {children}
+            <Toaster position="bottom-right" reverseOrder={false} />
         </Providers>
         </body>
         </html>
