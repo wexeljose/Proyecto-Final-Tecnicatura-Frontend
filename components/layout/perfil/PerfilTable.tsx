@@ -20,7 +20,7 @@ export default function PerfilTable({ perfiles, onEdit, onDelete }: Props) {
       <tbody>
         {perfiles.map((p) => (
           <tr key={p.id}>
-            <td className="border p-2">{p.nombre}</td>
+            <td className="border p-2">{p.nombrePerfil}</td>
             <td className="border p-2">{p.descripcion}</td>
             <td className="border p-2">{p.estado}</td>
             <td className="border p-2 space-x-2">
