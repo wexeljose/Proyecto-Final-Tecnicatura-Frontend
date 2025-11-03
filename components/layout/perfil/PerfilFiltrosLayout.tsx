@@ -18,6 +18,13 @@ export default function FiltrosPerfil({
   aplicarFiltros,
   onCrear,
 }: Props) {
+
+    const limpiarFiltros = () => {
+    setFiltroNombre("");
+    setFiltroEstado("");
+    aplicarFiltros(); 
+  };
+
   return (
     <div className="w-[250px] flex flex-col gap-4 p-4 border rounded shadow-sm bg-white">
       <h2 className="font-bold text-lg mb-2">Filtros</h2>
@@ -43,21 +50,29 @@ export default function FiltrosPerfil({
         <option value="Sin_validar">Sin validar</option>
       </select>
 
-      <button
-        className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
-        onClick={aplicarFiltros}
-      >
-        Buscar
-      </button>
+      <div className="flex flex-col gap-2 mt-3">
+        <button
+          onClick={aplicarFiltros}
+          className="bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+        >
+          Buscar
+        </button>
 
-      <hr className="my-2" />
+        {/* 🆕 Nuevo botón de limpiar */}
+        <button
+          onClick={limpiarFiltros}
+          className="bg-gray-300 text-gray-800 py-2 rounded-md hover:bg-gray-400"
+        >
+          Limpiar filtros
+        </button>
 
-      <button
-        className="bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700"
-        onClick={onCrear}
-      >
-        Crear Perfil
-      </button>
+        <button
+          onClick={onCrear}
+          className="bg-green-600 text-white py-2 rounded-md hover:bg-green-700 mt-2"
+        >
+          Crear perfil
+        </button>
+      </div>
     </div>
   );
 }

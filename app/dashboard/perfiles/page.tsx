@@ -1,11 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import { obtenerPerfiles, eliminarPerfil, actualizarPerfil } from "../../services/perfil";
+import { obtenerPerfiles, eliminarPerfil, actualizarPerfil, crearPerfil } from "../../services/perfil";
 import { Perfil, UpdatePerfil } from "../../../types/perfil";
 import PerfilTable from "../../../components/layout/perfil/PerfilTable";
 import EditPerfilModal from "../../../components/layout/perfil/PerfilEditModal";
 import { /*Toaster ,*/ toast } from "react-hot-toast";
-import { getSession } from "next-auth/react";
 import CrearPerfilModal from "../../../components/layout/perfil/PerfilCreateModal";
 import PerfilFiltrosLayout from "../../../components/layout/perfil/PerfilFiltrosLayout";
 
@@ -92,42 +91,15 @@ export default function ListadoPerfiles() {
   
   const handleCrearPerfil = async (data: { nombrePerfil: string; descripcion: string }) => {
     try {
-      const session = await getSession();
-      const token = session?.accessToken;
-
-      await toast.promise(
-        (async () => {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/perfiles/nuevo`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token ?? ""}`,
-            },
-            body: JSON.stringify(data),
-          });
-
-          // fuerza error si backend responde con status no-ok (para que toast muestre error)
-          if (!res.ok) {
-            const text = await res.text();
-            throw new Error(text || `HTTP ${res.status}`);
-          }
-
-          return res.json();
-        })(),
-        {
-          loading: "Creando perfil...",
-          success: "Perfil creado ✅",
-          error: "Error al crear perfil ❌",
-        }
-      );
-
-      setCrearPerfilModal(false);
-      await cargarPerfiles();
+      await crearPerfil(data);
+      toast.success("Perfil creado ✅");
+      cargarPerfiles();
+      setCrearPerfilModal(false); // cerrar modal
     } catch (error) {
-      console.error("Error en crear perfil:", error);
+      console.error(error);
+      toast.error("Error al crear el perfil ❌");
     }
   };
-
 
   if (loading) return <p>Cargando perfiles...</p>;
 
