@@ -52,6 +52,15 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                     tooltip="Gestión de usuarios del sistema"
                     collapsed={collapsed}
                 />
+
+                <SidebarLink 
+                    href="/dashboard/perfiles"
+                    icon={<Users size={18} />}
+                    label="Perfiles"
+                    tooltip="Gestión de perfiles y roles"
+                    collapsed={collapsed}
+                />
+                
                 <SidebarLink
                     href="/dashboard/actividades"
                     icon={<CalendarDays size={18} />}
