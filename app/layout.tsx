@@ -1,4 +1,4 @@
-import DashboardFooter from "../components/layout/DashboardFooter";
+//import DashboardFooter from "../components/layout/DashboardFooter";
 import "./globals.css";
 import Providers from "./providers"; // 👈 Importamos el provider
 import { Toaster } from "react-hot-toast";
@@ -19,7 +19,6 @@ export default function RootLayout({
         <Providers>
             {children}
             <Toaster position="top-right" reverseOrder={false} />
-            <DashboardFooter />
         </Providers>
         </body>
         </html>
