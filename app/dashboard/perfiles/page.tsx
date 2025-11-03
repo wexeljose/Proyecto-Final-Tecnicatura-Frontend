@@ -1,13 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
-import { obtenerPerfiles, eliminarPerfil } from "../../services/perfil";
-import { Perfil } from "../../../types/perfil";
+import { obtenerPerfiles, eliminarPerfil, actualizarPerfil } from "../../services/perfil";
+import { Perfil, UpdatePerfil } from "../../../types/perfil";
 import PerfilTable from "../../../components/layout/perfil/PerfilTable";
+import EditPerfilModal from "../../../components/layout/perfil/PerfilEditModal";
 import { Toaster, toast } from "react-hot-toast";
 
 export default function ListadoPerfiles() {
   const [perfiles, setPerfiles] = useState<Perfil[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPerfil, setSelectedPerfil] = useState<Perfil | null>(null);
 
   async function cargarPerfiles() {
     setLoading(true);
@@ -27,31 +29,38 @@ export default function ListadoPerfiles() {
     cargarPerfiles();
   }, []);
 
-  // Manejo de "eliminar" con toast
   const handleDelete = async (id: number) => {
-    if (!confirm("¿Seguro que deseas eliminar este perfil?")) return;
-
-    toast.promise(
-      eliminarPerfil(id),
-      {
-        loading: "Procesando...",
-        success: "Perfil desactivado correctamente ✅",
-        error: "No se pudo desactivar el perfil ❌",
-      }
-    );
+    if (!confirm("¿Seguro que deseas desactivar este perfil?")) return;
 
     try {
-      await eliminarPerfil(id);
-      // 🔹 Recargar la lista completa para reflejar cambios
-      await cargarPerfiles();
+      await toast.promise(
+        eliminarPerfil(id),
+        {
+          loading: "Procesando...",
+          success: "Perfil desactivado correctamente ✅",
+          error: "No se pudo desactivar el perfil ❌",
+        }
+      );
+      cargarPerfiles(); // recargar perfiles después de éxito
     } catch (error) {
-      console.error("Error al desactivar perfil:", error);
+      console.error(error);
     }
   };
 
   const handleEdit = (perfil: Perfil) => {
-    console.log("Editar perfil:", perfil);
-    // Aquí podrías abrir un modal o redirigir a formulario usando perfil.id
+    setSelectedPerfil(perfil);
+  };
+
+  const handleSave = async (id: number, data: UpdatePerfil) => {
+    try {
+      await actualizarPerfil(id, data);
+      toast.success("Perfil actualizado ✅");
+      cargarPerfiles();
+      setSelectedPerfil(null); // cerrar modal
+    } catch (error) {
+      console.error(error);
+      toast.error("Error al actualizar el perfil ❌");
+    }
   };
 
   if (loading) return <p>Cargando perfiles...</p>;
@@ -64,6 +73,15 @@ export default function ListadoPerfiles() {
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
+      
+      {selectedPerfil && (
+        <EditPerfilModal
+          perfil={selectedPerfil}
+          onClose={() => setSelectedPerfil(null)}
+          onSave={handleSave}
+        />
+      )}
+
       <Toaster position="top-right" reverseOrder={false} />
     </div>
   );
