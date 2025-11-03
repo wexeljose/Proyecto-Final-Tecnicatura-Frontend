@@ -4,12 +4,25 @@ import { obtenerPerfiles, eliminarPerfil, actualizarPerfil } from "../../service
 import { Perfil, UpdatePerfil } from "../../../types/perfil";
 import PerfilTable from "../../../components/layout/perfil/PerfilTable";
 import EditPerfilModal from "../../../components/layout/perfil/PerfilEditModal";
-import { Toaster, toast } from "react-hot-toast";
+import { /*Toaster ,*/ toast } from "react-hot-toast";
+import { getSession } from "next-auth/react";
+import CrearPerfilModal from "../../../components/layout/perfil/PerfilCreateModal";
+import PerfilFiltrosLayout from "../../../components/layout/perfil/PerfilFiltrosLayout";
+
+
 
 export default function ListadoPerfiles() {
+
   const [perfiles, setPerfiles] = useState<Perfil[]>([]);
   const [loading, setLoading] = useState(true);
+  //const [selectedPerfil, setSelectedPerfil] = useState<Perfil | null>(null);
+
+  const [filtroNombre, setFiltroNombre] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
+  const [crearPerfilModal, setCrearPerfilModal] = useState(false);
   const [selectedPerfil, setSelectedPerfil] = useState<Perfil | null>(null);
+  const [perfilesFiltrados, setPerfilesFiltrados] = useState<Perfil[]>([]);
+
 
   async function cargarPerfiles() {
     setLoading(true);
@@ -17,6 +30,7 @@ export default function ListadoPerfiles() {
       const data = await obtenerPerfiles();
       data.sort((a: Perfil, b: Perfil) => a.id - b.id);
       setPerfiles(data);
+      setPerfilesFiltrados(data);
     } catch (error) {
       console.error(error);
       toast.error("Error al cargar perfiles");
@@ -28,6 +42,19 @@ export default function ListadoPerfiles() {
   useEffect(() => {
     cargarPerfiles();
   }, []);
+
+  const aplicarFiltros = () => {
+    let filtrados = [...perfiles];
+    if (filtroNombre.trim()) {
+      filtrados = filtrados.filter((p) =>
+        p.nombrePerfil.toLowerCase().includes(filtroNombre.toLowerCase())
+      );
+    }
+    if (filtroEstado) {
+      filtrados = filtrados.filter((p) => p.estado === filtroEstado);
+    }
+    setPerfilesFiltrados(filtrados);
+  };
 
   const handleDelete = async (id: number) => {
     if (!confirm("¿Seguro que deseas desactivar este perfil?")) return;
@@ -62,18 +89,74 @@ export default function ListadoPerfiles() {
       toast.error("Error al actualizar el perfil ❌");
     }
   };
+  
+  const handleCrearPerfil = async (data: { nombrePerfil: string; descripcion: string }) => {
+    try {
+      const session = await getSession();
+      const token = session?.accessToken;
+
+      await toast.promise(
+        (async () => {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/perfiles/nuevo`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token ?? ""}`,
+            },
+            body: JSON.stringify(data),
+          });
+
+          // fuerza error si backend responde con status no-ok (para que toast muestre error)
+          if (!res.ok) {
+            const text = await res.text();
+            throw new Error(text || `HTTP ${res.status}`);
+          }
+
+          return res.json();
+        })(),
+        {
+          loading: "Creando perfil...",
+          success: "Perfil creado ✅",
+          error: "Error al crear perfil ❌",
+        }
+      );
+
+      setCrearPerfilModal(false);
+      await cargarPerfiles();
+    } catch (error) {
+      console.error("Error en crear perfil:", error);
+    }
+  };
+
 
   if (loading) return <p>Cargando perfiles...</p>;
 
   return (
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">Gestión de Perfiles</h1>
-      <PerfilTable
-        perfiles={perfiles}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
-      
+
+      <div className="flex gap-6">
+        {/* Tabla (principal) */}
+        <div className="flex-1">
+          <PerfilTable
+            perfiles={perfilesFiltrados}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        </div>
+
+        {/* Panel lateral de filtros y crear */}
+        <PerfilFiltrosLayout
+          filtroNombre={filtroNombre}
+          setFiltroNombre={setFiltroNombre}
+          filtroEstado={filtroEstado}
+          setFiltroEstado={setFiltroEstado}
+          aplicarFiltros={aplicarFiltros}
+          onCrear={() => setCrearPerfilModal(true)}
+        />
+      </div>
+
+      {/* Modal editar */}
       {selectedPerfil && (
         <EditPerfilModal
           perfil={selectedPerfil}
@@ -82,7 +165,10 @@ export default function ListadoPerfiles() {
         />
       )}
 
-      <Toaster position="top-right" reverseOrder={false} />
+      {/* Modal crear */}
+      {crearPerfilModal && (
+        <CrearPerfilModal onClose={() => setCrearPerfilModal(false)} onCrear={handleCrearPerfil} />
+      )}
     </div>
   );
 }
