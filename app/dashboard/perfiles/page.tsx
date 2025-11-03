@@ -7,6 +7,7 @@ import EditPerfilModal from "../../../components/layout/perfil/PerfilEditModal";
 import { /*Toaster ,*/ toast } from "react-hot-toast";
 import CrearPerfilModal from "../../../components/layout/perfil/PerfilCreateModal";
 import PerfilFiltrosLayout from "../../../components/layout/perfil/PerfilFiltrosLayout";
+import { confirmarAccion } from "../../../.idea/utils/confirmarAccion";
 
 
 
@@ -56,7 +57,9 @@ export default function ListadoPerfiles() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("¿Seguro que deseas desactivar este perfil?")) return;
+    const confirmado = await confirmarAccion("¿Seguro que deseas desactivar este perfil?");
+    if (!confirmado) return;
+
 
     try {
       await toast.promise(
@@ -78,6 +81,8 @@ export default function ListadoPerfiles() {
   };
 
   const handleSave = async (id: number, data: UpdatePerfil) => {
+    const confirmado = await confirmarAccion("¿Seguro que deseas modificar este perfil?");
+    if (!confirmado) return;
     try {
       await actualizarPerfil(id, data);
       toast.success("Perfil actualizado ✅");
