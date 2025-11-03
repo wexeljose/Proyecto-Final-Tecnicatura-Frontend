@@ -26,51 +26,65 @@ export default function FiltrosPerfil({
   };
 
   return (
-    <div className="w-[250px] flex flex-col gap-4 p-4 border rounded shadow-sm bg-white">
-      <h2 className="font-bold text-lg mb-2">Filtros</h2>
+    <div className="w-[240px] flex flex-col gap-2 p-3 border border-gray-200 rounded bg-white shadow">
+      <h2 className="font-medium text-sm text-gray-900 pb-2 border-b border-gray-200">Filtros</h2>
 
       {/* Filtro por nombre */}
-      <input
-        type="text"
-        placeholder="Nombre"
-        className="border p-2 rounded"
-        value={filtroNombre}
-        onChange={(e) => setFiltroNombre(e.target.value)}
-      />
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-gray-500">Nombre del perfil</label>
+        <input
+          type="text"
+          placeholder="Buscar por nombre..."
+          className="w-full border border-gray-200 px-2 py-1.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+          value={filtroNombre}
+          onChange={(e) => setFiltroNombre(e.target.value)}
+        />
+      </div>
 
       {/* Filtro por estado */}
-      <select
-        className="border p-2 rounded"
-        value={filtroEstado}
-        onChange={(e) => setFiltroEstado(e.target.value)}
-      >
-        <option value="">Todos</option>
-        <option value="Activos">Activos</option>
-        <option value="Inactivos">Inactivos</option>
-        <option value="Sin_validar">Sin validar</option>
-      </select>
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-gray-500">Estado</label>
+        <select
+          className="w-full border border-gray-200 px-2 py-1.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white"
+          value={filtroEstado}
+          onChange={(e) => setFiltroEstado(e.target.value)}
+        >
+          <option value="">Todos los estados</option>
+          <option value="Activos">Activos</option>
+          <option value="Inactivos">Inactivos</option>
+          <option value="Sin_validar">Sin validar</option>
+        </select>
+      </div>
 
-      <div className="flex flex-col gap-2 mt-3">
+      <div className="flex flex-col gap-1.5 pt-2 border-t border-gray-200 mt-1">
         <button
           onClick={aplicarFiltros}
-          className="bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+          className="inline-flex items-center justify-center gap-1.5 px-2 py-1 bg-blue-50 text-blue-700 text-sm font-medium rounded hover:bg-blue-100 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 transition-colors duration-200"
         >
-          Buscar
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <span>Buscar</span>
         </button>
 
-        {/* 🆕 Nuevo botón de limpiar */}
         <button
           onClick={limpiarFiltros}
-          className="bg-gray-300 text-gray-800 py-2 rounded-md hover:bg-gray-400"
+          className="inline-flex items-center justify-center gap-1.5 px-2 py-1 bg-gray-50 text-gray-700 text-sm font-medium rounded hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-500 focus:ring-offset-1 transition-colors duration-200"
         >
-          Limpiar filtros
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          <span>Limpiar</span>
         </button>
 
         <button
           onClick={onCrear}
-          className="bg-green-600 text-white py-2 rounded-md hover:bg-green-700 mt-2"
+          className="inline-flex items-center justify-center gap-1.5 px-2 py-1 bg-green-50 text-green-700 text-sm font-medium rounded hover:bg-green-100 focus:outline-none focus:ring-1 focus:ring-green-500 focus:ring-offset-1 transition-colors duration-200"
         >
-          Crear perfil
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          <span>Crear perfil</span>
         </button>
       </div>
     </div>

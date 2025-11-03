@@ -18,7 +18,7 @@ export default function RootLayout({
         <body>
         <Providers>
             {children}
-            <Toaster position="top-right" reverseOrder={false} />
+            <Toaster position="bottom-right" reverseOrder={false} />
         </Providers>
         </body>
         </html>
