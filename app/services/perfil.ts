@@ -27,9 +27,9 @@ export async function obtenerPerfiles() {
 
 // Eliminar un perfil por ID
 export async function eliminarPerfil(id: number) {
-
   const session = await getSession();
   const token = session?.accessToken;
+
   const response = await fetch(`${API_URL}/perfiles/${id}/baja`, {
     method: "PUT",
     headers: {
@@ -37,11 +37,21 @@ export async function eliminarPerfil(id: number) {
       "Authorization": `Bearer ${token}`,
     },
   });
+
   if (!response.ok) {
     const text = await response.text();
     throw new Error(`Error al eliminar perfil: ${text}`);
   }
-  return response.json();
+
+  // 204 (sin contenido)
+  if (response.status === 204) return true;
+
+  // Si el backend devuelve algo, lo parseamos
+  try {
+    return await response.json();
+  } catch {
+    return true; // sin contenido, pero éxito
+  }
 }
 
 // Actualizar un perfil por ID
