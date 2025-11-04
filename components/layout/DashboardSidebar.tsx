@@ -12,6 +12,7 @@ import {
     ClipboardList,
     MapPin,
     BarChart3,
+    ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
@@ -58,6 +59,14 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                     icon={<Users size={18} />}
                     label="Perfiles"
                     tooltip="Gestión de perfiles y roles"
+                    collapsed={collapsed}
+                />
+
+                <SidebarLink
+                    href="/dashboard/funcionalidades"
+                    icon={<ShieldCheck size={18} />}    // ← ícono para permisos/funciones
+                    label="Funcionalidades"
+                    tooltip="Gestión de funcionalidades y accesos"
                     collapsed={collapsed}
                 />
                 
