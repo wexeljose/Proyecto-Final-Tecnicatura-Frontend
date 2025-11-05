@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, Lock, User, Calendar, Home, Hash } from "lucide-react";
-import { registrarUsuario } from "../../services/usuarios";
+import { crearUsuario } from "../../services/usuarios";
 
 export default function RegisterPage() {
+    const router = useRouter();
+
     const [form, setForm] = useState({
         nombre1: "",
         nombre2: "",
@@ -24,17 +27,29 @@ export default function RegisterPage() {
         tipoUsuario: "",
     });
 
+    // ✅ Nuevos campos si el usuario es Socio
+    const [socioDatos, setSocioDatos] = useState({
+        lengSeñas: false,
+        difAudi: false,
+        pagoCuotas: false,
+    });
+
     const [aceptaTerminos, setAceptaTerminos] = useState(false);
     const [error, setError] = useState("");
+    const [mensaje, setMensaje] = useState("");
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
+    const handleSocioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSocioDatos({ ...socioDatos, [e.target.name]: e.target.checked });
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("📤 Enviando formulario de registro...");
         setError("");
+        setMensaje("");
 
         if (form.contrasena !== form.repetirContrasena) {
             setError("Las contraseñas no coinciden");
@@ -47,7 +62,8 @@ export default function RegisterPage() {
         }
 
         try {
-            await registrarUsuario({
+            // 🧩 Armar objeto de envío
+            const data: any = {
                 nombre1: form.nombre1,
                 nombre2: form.nombre2,
                 apellido1: form.apellido1,
@@ -61,15 +77,27 @@ export default function RegisterPage() {
                 apto: form.apto,
                 contrasena: form.contrasena,
                 tipoUsuario: form.tipoUsuario,
-            });
+            };
 
-            alert("✅ Usuario registrado correctamente");
-        } catch (error) {
+            // 👉 Si el usuario es Socio, agrega socioDatos
+            if (form.tipoUsuario === "Socio") {
+                data.socioDatos = {
+                    lengSeñas: socioDatos.lengSeñas,
+                    difAudi: socioDatos.difAudi,
+                    pagoCuotas: socioDatos.pagoCuotas,
+                };
+            }
+
+            console.log("📤 Enviando usuario:", data);
+            await crearUsuario(data);
+
+            setMensaje("✅ Usuario registrado correctamente. Debe esperar a que su cuenta sea activada por un Administrador.");
+            setTimeout(() => router.push("/"), 4000);
+        } catch (error: any) {
             console.error(error);
-            setError("Error al registrar el usuario");
+            setError(error.message || "Error al registrar el usuario");
         }
     };
-
 
     return (
         <main className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
@@ -98,7 +126,7 @@ export default function RegisterPage() {
                         </h2>
 
                         <form onSubmit={handleSubmit} className="space-y-3">
-                            {/* Nombre y apellidos */}
+                            {/* Nombres y apellidos */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div className="relative">
                                     <User className="absolute left-3 top-2.5 text-gray-400" size={18} />
@@ -143,7 +171,6 @@ export default function RegisterPage() {
                                         value={form.apellido2}
                                         onChange={handleChange}
                                         className="w-full pl-10 pr-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-400 bg-gray-50"
-                                        required
                                     />
                                 </div>
                             </div>
@@ -282,6 +309,42 @@ export default function RegisterPage() {
                                 <option value="AuxiliarAdm">Auxiliar Administrativo</option>
                             </select>
 
+                            {/* Campos adicionales si es Socio */}
+                            {form.tipoUsuario === "Socio" && (
+                                <div className="mt-3 border-t pt-3">
+                                    <h4 className="font-semibold text-sm mb-2 text-blue-900">Datos de socio</h4>
+                                    <div className="flex flex-col gap-2">
+                                        <label className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                name="lengSeñas"
+                                                checked={socioDatos.lengSeñas}
+                                                onChange={handleSocioChange}
+                                            />
+                                            Usa lengua de señas
+                                        </label>
+                                        <label className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                name="difAudi"
+                                                checked={socioDatos.difAudi}
+                                                onChange={handleSocioChange}
+                                            />
+                                            Presenta dificultad auditiva
+                                        </label>
+                                        <label className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                name="pagoCuotas"
+                                                checked={socioDatos.pagoCuotas}
+                                                onChange={handleSocioChange}
+                                            />
+                                            Está al día con el pago de cuotas
+                                        </label>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Términos */}
                             <div className="flex items-center mt-2">
                                 <input
@@ -299,10 +362,12 @@ export default function RegisterPage() {
                                 </label>
                             </div>
 
-                            {error && (
-                                <p className="text-center text-red-500 text-sm font-medium mt-2">
-                                    {error}
-                                </p>
+                            {/* Mensajes */}
+                            {error && <p className="text-center text-red-500 text-sm font-medium mt-2">{error}</p>}
+                            {mensaje && (
+                                <div className="mt-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded-md text-center animate-fadeIn">
+                                    {mensaje}
+                                </div>
                             )}
 
                             <button
@@ -316,7 +381,6 @@ export default function RegisterPage() {
                             >
                                 Registrarse
                             </button>
-
                         </form>
 
                         <div className="text-center mt-4 border-t pt-4">
@@ -331,7 +395,6 @@ export default function RegisterPage() {
                 </div>
             </div>
 
-            {/* Footer institucional */}
             <footer className="w-full bg-blue-900 text-white py-4 shadow-inner">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center px-6 text-center md:text-left">
                     <p className="text-xs">
@@ -342,9 +405,21 @@ export default function RegisterPage() {
                     </p>
                 </div>
             </footer>
+
+            <style jsx>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-5px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                .animate-fadeIn {
+                    animation: fadeIn 0.5s ease-in-out;
+                }
+            `}</style>
         </main>
     );
 }
+
+
 
 
 
