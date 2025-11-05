@@ -11,20 +11,20 @@ interface BackendLoginResponse {
         correo: string;
     };
 }
+
 type AuthenticatedUser = User & {
     token?: string;
 };
 
-
 const handler = NextAuth({
     providers: [
-        // 🔹 Login con Google (OAuth)
+        // 🔹 Login con Google
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID ?? "",
             clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
         }),
 
-        // 🔹 Login con credenciales propias (backend)
+        // 🔹 Login con credenciales propias
         CredentialsProvider({
             name: "Credentials",
             credentials: {
@@ -75,16 +75,18 @@ const handler = NextAuth({
         signIn: "/login",
     },
 
-    // 🔹 Callbacks: controlan el JWT, la sesión y la redirección
+    // Callbacks
     callbacks: {
-        // Generación del JWT interno de NextAuth
+        // JWT interno de NextAuth
         async jwt({ token, user, account }) {
-            // Si viene del login con credenciales (usuario clásico)
+            // 🟢 Login con credenciales (usuario clásico)
             if (user && "token" in user) {
                 token.accessToken = (user as AuthenticatedUser).token!;
+                // 👇 Solución: garantizamos que siempre sea string
+                token.name = user.name ?? "Usuario";
             }
 
-            // Si viene de login con Google
+            // 🟢 Login con Google
             if (account?.provider === "google" && user?.email) {
                 try {
                     const res = await axios.post<BackendLoginResponse>(
@@ -95,6 +97,8 @@ const handler = NextAuth({
                     const data = res.data;
                     if (data && data.token) {
                         token.accessToken = data.token;
+                        // 👇 También asignamos el nombre si viene de Google
+                        token.name = user.name ?? "Usuario Google";
                     } else {
                         console.warn("El usuario de Google no existe en el sistema.");
                     }
@@ -107,9 +111,10 @@ const handler = NextAuth({
             return token;
         },
 
-        // Sesión del lado del cliente (Frontend)
+        // Sesión visible en el frontend
         async session({ session, token }) {
             session.accessToken = token.accessToken as string;
+            session.user.name = token.name as string;
             return session;
         },
 
@@ -124,7 +129,7 @@ const handler = NextAuth({
         },
     },
 
-    // 🔹 Clave secreta de NextAuth
+    // Clave secreta de NextAuth
     secret: process.env.NEXTAUTH_SECRET,
 });
 
