@@ -48,7 +48,7 @@ export default function EditActividadModal({ actividad, onClose, onSave }: Props
           <select className="border p-2 col-span-2" name="estado" value={form.estado || ""} onChange={handleChange}>
             <option value="">Seleccionar estado</option>
             <option value="Activo">Activo</option>
-            <option value="Inactivo">Inactivo</option>
+            <option value="Inactivo">Inactivos</option>
           </select>
 
           <div className="col-span-2 flex justify-end gap-2 mt-4">

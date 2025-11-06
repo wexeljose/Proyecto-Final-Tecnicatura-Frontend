@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
+import { useSession } from "next-auth/react";
 
 interface Props {
   onClose: () => void;
@@ -9,6 +10,10 @@ interface Props {
 }
 
 export default function CrearActividadModal({ onClose, onCrear }: Props) {
+  const { data: session } = useSession();
+  const [recursos, setRecursos] = useState<any[]>([]);
+  const [tiposActividad, setTiposActividad] = useState<any[]>([]);
+
   const [form, setForm] = useState({
     nombre: "",
     descripcion: "",
@@ -25,20 +30,48 @@ export default function CrearActividadModal({ onClose, onCrear }: Props) {
     idTipoActividad: "",
   });
 
-  // ✅ Maneja inputs, selects y checkbox correctamente
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const target = e.target;
-    const { name, value } = target;
+  // 🔹 Cargar listas de recursos y tipos de actividad
+  useEffect(() => {
+    const cargarListas = async () => {
+      const token = session?.accessToken;
+      if (!token) return;
 
-    if (target instanceof HTMLInputElement && target.type === "checkbox") {
-      setForm({ ...form, [name]: target.checked });
-    } else {
-      setForm({ ...form, [name]: value });
-    }
+      try {
+        const [recRes, tipoRes] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/recursos/lista`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/tipo-actividad/lista`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        if (!recRes.ok || !tipoRes.ok) {
+          throw new Error("Error al obtener listas desde el servidor");
+        }
+
+        const recursosData = await recRes.json();
+        const tiposData = await tipoRes.json();
+
+        setRecursos(recursosData);
+        setTiposActividad(tiposData);
+      } catch (err) {
+        console.error("Error al cargar listas", err);
+        toast.error("Error al cargar listas de selección ❌");
+      }
+    };
+
+    cargarListas();
+  }, [session]);
+
+  //  Manejo de inputs
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
+    setForm({ ...form, [name]: type === "checkbox" ? checked : value });
   };
 
+  //  Envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -51,6 +84,7 @@ export default function CrearActividadModal({ onClose, onCrear }: Props) {
     }
   };
 
+  //  Render del modal
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg w-3/4 max-w-2xl shadow-xl">
@@ -108,6 +142,7 @@ export default function CrearActividadModal({ onClose, onCrear }: Props) {
             required
           />
 
+          {/* Checkbox */}
           <label className="flex items-center gap-2 col-span-2">
             <input
               type="checkbox"
@@ -125,12 +160,12 @@ export default function CrearActividadModal({ onClose, onCrear }: Props) {
             required
           />
 
-          {/* ✅ Combobox de FormaCobro (Enum del backend) */}
+          {/* Combobox Forma de Pago */}
           <select
-            className="border p-2 rounded"
+            className="border p-2"
             name="formaPago"
-            value={form.formaPago}
             onChange={handleChange}
+            value={form.formaPago}
             required
           >
             <option value="">Seleccionar forma de pago</option>
@@ -146,23 +181,40 @@ export default function CrearActividadModal({ onClose, onCrear }: Props) {
             placeholder="Observaciones"
             onChange={handleChange}
           />
-          <input
-            className="border p-2"
-            type="number"
-            name="idRecurso"
-            placeholder="ID Recurso"
-            onChange={handleChange}
-            required
-          />
-          <input
-            className="border p-2"
-            type="number"
-            name="idTipoActividad"
-            placeholder="ID Tipo Actividad"
-            onChange={handleChange}
-            required
-          />
 
+          {/* 🧩 Combobox Recurso */}
+          <select
+            name="idRecurso"
+            className="border p-2"
+            onChange={handleChange}
+            value={form.idRecurso}
+            required
+          >
+            <option value="">Seleccionar recurso</option>
+            {recursos.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.nombre}
+              </option>
+            ))}
+          </select>
+
+          {/* 🧩 Combobox Tipo de Actividad */}
+          <select
+            name="idTipoActividad"
+            className="border p-2"
+            onChange={handleChange}
+            value={form.idTipoActividad}
+            required
+          >
+            <option value="">Seleccionar tipo de actividad</option>
+            {tiposActividad.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.nombre}
+              </option>
+            ))}
+          </select>
+
+          {/* Botones */}
           <div className="col-span-2 flex justify-end gap-2 mt-4">
             <button
               type="button"
