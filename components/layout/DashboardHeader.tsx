@@ -7,7 +7,7 @@ import { User } from "lucide-react";
 
 export default function DashboardHeader() {
     const { data: session } = useSession();
-    const usuario = session?.user?.name || "Usuario";
+    const usuario = session?.user?.email || "Usuario";
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 

@@ -5,6 +5,7 @@ import axios, { AxiosError } from "axios";
 
 interface BackendLoginResponse {
     token: string;
+    id: string; // ✅ Agregar el ID
     usuario?: {
         nombre1: string;
         apellido1: string;
@@ -43,22 +44,26 @@ const handler = NextAuth({
                     );
 
                     const data = res.data;
-                    if (data && data.token) {
+                    
+                    console.log("✅ Respuesta del backend:", data); // Debug
+                    
+                    if (data && data.token && data.id) {
                         return {
-                            id: "login",
+                            id: data.id, // ✅ ID real del usuario
                             name:
                                 data.usuario?.nombre1 && data.usuario?.apellido1
                                     ? `${data.usuario.nombre1} ${data.usuario.apellido1}`
                                     : "Usuario",
-                            email: data.usuario?.correo ?? "",
+                            email: data.usuario?.correo ?? credentials.username,
                             token: data.token,
                         } as User;
                     }
 
+                    console.error("❌ Respuesta del backend incompleta:", data);
                     return null;
                 } catch (error) {
                     const err = error as AxiosError;
-                    console.error("Error en login:", err.response?.data || err.message);
+                    console.error("❌ Error en login:", err.response?.data || err.message);
                     return null;
                 }
             },
@@ -73,14 +78,20 @@ const handler = NextAuth({
     // 🔹 Callbacks para manejar token, sesión y redirección
     callbacks: {
         async jwt({ token, user }) {
-            if (user && "token" in user) {
+            if (user) {
                 token.accessToken = (user as unknown as { token: string }).token;
+                token.id = user.id; // ✅ Guardar ID en el token
+                token.email = user.email;
+                token.name = user.name;
             }
             return token;
         },
 
         async session({ session, token }) {
             session.accessToken = token.accessToken as string;
+            session.user.id = token.id as string; // ✅ Pasar ID a la sesión
+            session.user.email = token.email as string;
+            session.user.name = token.name as string;
             return session;
         },
 
@@ -99,8 +110,7 @@ const handler = NextAuth({
 
             // Redirección por defecto
             return `${baseUrl}/dashboard`;
-        }
-        ,
+        },
     },
 
     // 🔹 Clave secreta de NextAuth

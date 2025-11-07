@@ -29,8 +29,8 @@ import { confirmarAccion } from "../../../.idea/utils/confirmarAccion";
 
 export default function InscripcionActividadesPage() {
   const { data: session } = useSession();
-  const userId = (session?.user as { id?: number })?.id || 1; // Temporal para testing
-  //const userId = (session?.user as { id?: number })?.id;
+  console.log("Session en InscripcionActividadesPage:", session);
+  const userId = session?.user?.id || 1; // Usar 1 como fallback para desarrollo
 
   const [actividades, setActividades] = useState<ActividadConInscripcion[]>([]);
   const [filtradas, setFiltradas] = useState<ActividadConInscripcion[]>([]);

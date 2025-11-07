@@ -31,7 +31,14 @@ export default function ActividadDetalleModal({
   const puedeInscribirse = () => {
     if (actividad.inscrito) return false;
     if (actividad.estado !== "Activos") return false;
-    
+    if (!actividad.requiereInscripcion) return false;
+    if (!actividad.fechaAperturaInscripcion) return false;
+    if (!actividad.fechaAct) return false;
+
+    // Verificar fechas
+    if (new Date(actividad.fechaAct) < new Date()) return false;
+    if (new Date(actividad.fechaAperturaInscripcion) > new Date()) return false;
+
     const hoy = new Date().toISOString().split("T")[0];
     const fechaApertura = actividad.fechaAperturaInscripcion;
     
@@ -44,7 +51,7 @@ export default function ActividadDetalleModal({
     const hoy = new Date().toISOString().split("T")[0];
     const fechaActividad = actividad.fechaAct;
     
-    return fechaActividad > hoy;
+    return fechaActividad < hoy;
   };
 
   return (
