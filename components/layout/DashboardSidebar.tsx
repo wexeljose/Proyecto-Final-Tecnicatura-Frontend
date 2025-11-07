@@ -54,7 +54,7 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                     collapsed={collapsed}
                 />
 
-                <SidebarLink 
+                <SidebarLink
                     href="/dashboard/perfiles"
                     icon={<Users size={18} />}
                     label="Perfiles"
@@ -78,9 +78,9 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                     collapsed={collapsed}
                 />
                 <SidebarLink
-                    href="/dashboard/espacios"
+                    href="/components/layout/recursos"
                     icon={<Building2 size={18} />}
-                    label="Espacios"
+                    label="Recursos"
                     tooltip="Administrar espacios y salas"
                     collapsed={collapsed}
                 />
@@ -92,7 +92,7 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                     collapsed={collapsed}
                 />
                 <SidebarLink
-                    href="/dashboard/reservas"
+                    href="/components/layout/reserva"
                     icon={<ClipboardList size={18} />}
                     label="Reservas"
                     tooltip="Gestión de reservas de actividades"
