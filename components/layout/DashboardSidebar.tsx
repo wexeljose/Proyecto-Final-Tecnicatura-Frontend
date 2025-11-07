@@ -78,9 +78,9 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                     collapsed={collapsed}
                 />
                 <SidebarLink
-                    href="/components/layout/recursos"
+                    href="/dashboard/recursos"
                     icon={<Building2 size={18} />}
-                    label="Recursos"
+                    label="Espacios"
                     tooltip="Administrar espacios y salas"
                     collapsed={collapsed}
                 />
