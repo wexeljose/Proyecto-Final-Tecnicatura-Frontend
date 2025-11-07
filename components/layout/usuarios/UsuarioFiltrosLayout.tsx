@@ -12,7 +12,7 @@ interface Props {
     filtros: Filtros;
     setFiltros: (f: Filtros) => void;
     aplicarFiltros: () => void;
-    recargarUsuarios: () => Promise<void>; // 👈 AGREGAR ESTA LÍNEA
+    recargarUsuarios: () => Promise<void>;
 }
 
 export default function FiltrosUsuarios({ filtros, setFiltros }: Props) {

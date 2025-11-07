@@ -11,7 +11,7 @@ import {
     Building2,
     ClipboardList,
     MapPin,
-    BarChart3,
+    FileSearch,
     ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
@@ -69,7 +69,7 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                     tooltip="Gestión de funcionalidades y accesos"
                     collapsed={collapsed}
                 />
-                
+
                 <SidebarLink
                     href="/dashboard/actividades"
                     icon={<CalendarDays size={18} />}
@@ -106,10 +106,10 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                     collapsed={collapsed}
                 />
                 <SidebarLink
-                    href="/dashboard/reportes"
-                    icon={<BarChart3 size={18} />}
-                    label="Reportes"
-                    tooltip="Ver estadísticas y reportes"
+                    href="/dashboard/auditorias"
+                    icon={<FileSearch size={18} />}
+                    label="Auditorías"
+                    tooltip="Registro y consulta de auditorías del sistema"
                     collapsed={collapsed}
                 />
             </nav>
