@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import { obtenerActividades } from "../../services/actividad";
 import {
   obtenerInscripcionesPorUsuario,
-  crearInscripcion,
+  inscribirORehabilitarActividad,
   cancelarInscripcion,
 } from "../../services/inscripcion";
 
@@ -29,8 +29,7 @@ import { confirmarAccion } from "../../../.idea/utils/confirmarAccion";
 
 export default function InscripcionActividadesPage() {
   const { data: session } = useSession();
-  console.log("Session en InscripcionActividadesPage:", session);
-  const userId = session?.user?.id || 1; // Usar 1 como fallback para desarrollo
+  const userId = session?.user?.id;
 
   const [actividades, setActividades] = useState<ActividadConInscripcion[]>([]);
   const [filtradas, setFiltradas] = useState<ActividadConInscripcion[]>([]);
@@ -65,11 +64,9 @@ export default function InscripcionActividadesPage() {
         (a: Actividad) => a.requiereInscripcion
       );
 
-      // Crear un mapa de inscripciones por actividad
+      // Crear un mapa de inscripciones por actividad (incluyendo canceladas)
       const inscripcionesMap = new Map(
-        misInscripciones
-          .filter((i) => !i.cancelada)
-          .map((i) => [i.idActividad, i])
+        misInscripciones.map((i) => [i.idActividad, i])
       );
 
       // Combinar información
@@ -80,7 +77,8 @@ export default function InscripcionActividadesPage() {
             ...act,
             formaPago: act.formaPago || null,
             observaciones: act.observaciones || null,
-            inscrito: !!inscripcion,
+            // Solo está inscrito si existe Y no está cancelada
+            inscrito: !!(inscripcion && !inscripcion.cancelada),
             idInscripcion: inscripcion?.id,
             fechaInscripcion: inscripcion?.fecInscripcion,
           };
@@ -98,7 +96,10 @@ export default function InscripcionActividadesPage() {
 
   useEffect(() => {
     if (userId) {
+      console.log("✅ Cargando datos con userId:", userId);
       cargarDatos();
+    } else {
+      console.log("⚠️ No hay userId, esperando sesión...");
     }
   }, [userId]);
 
@@ -159,7 +160,7 @@ export default function InscripcionActividadesPage() {
     setFiltradas(actividades);
   };
 
-  // ➕ Inscribirse
+  // ➕ Inscribirse o Reinscribirse
   const handleInscribir = async (actividad: ActividadConInscripcion) => {
     if (!userId) return;
 
@@ -170,14 +171,20 @@ export default function InscripcionActividadesPage() {
 
     try {
       await toast.promise(
-        crearInscripcion({
+        inscribirORehabilitarActividad({
           idUsuario: Number(userId),
           idActividad: actividad.id,
         }),
         {
           loading: "Procesando inscripción...",
           success: "¡Te has inscrito correctamente! ✅",
-          error: "No se pudo completar la inscripción ❌",
+          error: (err) => {
+            // Mensaje personalizado según el error
+            if (err.message.includes("Ya estás inscrito")) {
+              return "Ya estás inscrito en esta actividad ⚠️";
+            }
+            return "No se pudo completar la inscripción ❌";
+          },
         }
       );
 
@@ -215,6 +222,24 @@ export default function InscripcionActividadesPage() {
   const handleVerDetalle = (actividad: ActividadConInscripcion) => {
     setSelectedActividad(actividad);
   };
+
+  if (status === "loading") {
+    return (
+      <div className="p-6">
+        <p className="text-sm text-gray-500">Cargando sesión...</p>
+      </div>
+    );
+  }
+
+  if (!userId) {
+    return (
+      <div className="p-6">
+        <p className="text-sm text-red-600">
+          Error: No se pudo obtener el ID de usuario. Por favor, vuelve a iniciar sesión.
+        </p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
