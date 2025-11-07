@@ -12,6 +12,7 @@ import {
     ClipboardList,
     MapPin,
     FileSearch,
+    ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
@@ -60,7 +61,15 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                     tooltip="Gestión de perfiles y roles"
                     collapsed={collapsed}
                 />
-                
+
+                <SidebarLink
+                    href="/dashboard/funcionalidades"
+                    icon={<ShieldCheck size={18} />}    // ← ícono para permisos/funciones
+                    label="Funcionalidades"
+                    tooltip="Gestión de funcionalidades y accesos"
+                    collapsed={collapsed}
+                />
+
                 <SidebarLink
                     href="/dashboard/actividades"
                     icon={<CalendarDays size={18} />}
@@ -96,7 +105,6 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                     tooltip="Gestión de lugares físicos"
                     collapsed={collapsed}
                 />
-                {/* Auditorías (nuevo módulo) */}
                 <SidebarLink
                     href="/dashboard/auditorias"
                     icon={<FileSearch size={18} />}
