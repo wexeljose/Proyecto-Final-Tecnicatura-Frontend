@@ -78,7 +78,7 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                 />
 
                 <SidebarLink
-                    href="/dashboard/tipos-de-actividad"
+                    href="/dashboard/tipo-actividad"
                     icon={<CalendarDays size={18} />}
                     label="Tipos de Actividad"
                     tooltip="Gestión de tipos de actividad"
