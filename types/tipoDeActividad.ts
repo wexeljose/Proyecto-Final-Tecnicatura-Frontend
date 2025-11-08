@@ -4,5 +4,17 @@ export interface TipoActividad {
   id: number;
   nombre: string;
   descripcion: string;
-  estado: boolean;
+  estado: string;
+}
+
+export interface CreateTipoActividad {
+  nombre: string;
+  descripcion: string;
+}
+
+export interface TipoActividadBajaDTO {
+  fechaBaja: string;         
+  usuarioBaja: string;
+  razonBaja: string;
+  comentariosBaja?: string;
 }
