@@ -109,6 +109,7 @@ export default function InscripcionFiltrosLayout({
             <option value="">Todos</option>
             <option value="disponible">Disponibles</option>
             <option value="inscrito">Mis Inscripciones</option>
+            <option value="no_disponible">No Disponibles</option>
           </select>
         </div>
 

@@ -113,13 +113,17 @@ export default function ActividadInscripcionTable({
                   <span className="inline-flex items-center px-2 py-0.5 rounded text-sm font-medium bg-green-100 text-green-800">
                     Inscrito
                   </span>
-                ) : (
+                ) : puedeInscribirse(actividad) ? (
                   <span className="inline-flex items-center px-2 py-0.5 rounded text-sm font-medium bg-yellow-100 text-yellow-800">
                     Disponible
                   </span>
+                ) : (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-sm font-medium bg-gray-100 text-gray-400">
+                    No disponible
+                  </span>
                 )}
               </td>
-              <td className="px-1 py-1.5 text-center">
+                <td className="px-1 py-1.5 text-center">
                 <div className="flex justify-center gap-2">
                   <button
                     onClick={() => onVerDetalle(actividad)}

@@ -70,19 +70,32 @@ export default function InscripcionActividadesPage() {
       );
 
       // Combinar información
-      const actividadesConInscripcion: ActividadConInscripcion[] =
-        actividadesInscribibles.map((act: Actividad) => {
-          const inscripcion = inscripcionesMap.get(act.id);
-          return {
-            ...act,
-            formaPago: act.formaPago || null,
-            observaciones: act.observaciones || null,
-            // Solo está inscrito si existe Y no está cancelada
-            inscrito: !!(inscripcion && !inscripcion.cancelada),
-            idInscripcion: inscripcion?.id,
-            fechaInscripcion: inscripcion?.fecInscripcion,
-          };
-        });
+          const actividadesConInscripcion: ActividadConInscripcion[] =
+      actividadesInscribibles.map((act: Actividad) => {
+        const inscripcion = inscripcionesMap.get(act.id);
+
+        const inscrito = !!(inscripcion && !inscripcion.cancelada);
+
+        // ✅ lógica para determinar si está disponible
+        const hoy = new Date().toISOString().split("T")[0];
+
+        const disponible =
+          act.requiereInscripcion === true &&
+          !inscrito &&
+          (!act.fechaAperturaInscripcion || act.fechaAperturaInscripcion <= hoy) &&
+          (!act.fechaAct || act.fechaAct >= hoy);
+
+        return {
+          ...act,
+          formaPago: act.formaPago || null,
+          observaciones: act.observaciones || null,
+          inscrito,
+          disponible, // <-- ✅ agregado aquí
+          idInscripcion: inscripcion?.id,
+          fechaInscripcion: inscripcion?.fecInscripcion,
+        };
+      });
+
 
       setActividades(actividadesConInscripcion);
       setFiltradas(actividadesConInscripcion);
@@ -105,46 +118,58 @@ export default function InscripcionActividadesPage() {
 
   // 🔍 Aplicar filtros
   const aplicarFiltros = () => {
-    let resultado = [...actividades];
+  let resultado = [...actividades];
 
-    // Filtro por nombre
-    if (filtros.nombre.trim()) {
-      resultado = resultado.filter((a) =>
-        a.nombre.toLowerCase().includes(filtros.nombre.toLowerCase())
-      );
-    }
+  // Filtros anteriores: nombre, fecha, costo...
+  if (filtros.nombre.trim()) {
+    resultado = resultado.filter((a) =>
+      a.nombre.toLowerCase().includes(filtros.nombre.toLowerCase())
+    );
+  }
+  if (filtros.fechaDesde) {
+    resultado = resultado.filter((a) => a.fechaAct >= filtros.fechaDesde);
+  }
+  if (filtros.fechaHasta) {
+    resultado = resultado.filter((a) => a.fechaAct <= filtros.fechaHasta);
+  }
+  if (filtros.costoMin) {
+    const min = parseFloat(filtros.costoMin);
+    resultado = resultado.filter((a) => a.costoTicket >= min);
+  }
+  if (filtros.costoMax) {
+    const max = parseFloat(filtros.costoMax);
+    resultado = resultado.filter((a) => a.costoTicket <= max);
+  }
 
-    // Filtro por fecha desde
-    if (filtros.fechaDesde) {
-      resultado = resultado.filter((a) => a.fechaAct >= filtros.fechaDesde);
-    }
-
-    // Filtro por fecha hasta
-    if (filtros.fechaHasta) {
-      resultado = resultado.filter((a) => a.fechaAct <= filtros.fechaHasta);
-    }
-
-    // Filtro por costo mínimo
-    if (filtros.costoMin) {
-      const min = parseFloat(filtros.costoMin);
-      resultado = resultado.filter((a) => a.costoTicket >= min);
-    }
-
-    // Filtro por costo máximo
-    if (filtros.costoMax) {
-      const max = parseFloat(filtros.costoMax);
-      resultado = resultado.filter((a) => a.costoTicket <= max);
-    }
-
-    // Filtro por estado
+  // 🔹 Nuevo filtro por estado usando `inscrito` y `disponible`
     if (filtros.estado === "disponible") {
-      resultado = resultado.filter((a) => !a.inscrito);
+      const hoy = new Date().toISOString().split("T")[0];
+      resultado = resultado.filter((a) => {
+        const disponible =
+          a.requiereInscripcion === true &&
+          !a.inscrito &&
+          (!a.fechaAperturaInscripcion || a.fechaAperturaInscripcion <= hoy) &&
+          (!a.fechaAct || a.fechaAct >= hoy);
+        return disponible;
+      });
     } else if (filtros.estado === "inscrito") {
       resultado = resultado.filter((a) => a.inscrito);
+    } else if (filtros.estado === "no_disponible") {
+      const hoy = new Date().toISOString().split("T")[0];
+      resultado = resultado.filter((a) => {
+        const disponible =
+          a.requiereInscripcion === true &&
+          !a.inscrito &&
+          (!a.fechaAperturaInscripcion || a.fechaAperturaInscripcion <= hoy) &&
+          (!a.fechaAct || a.fechaAct >= hoy) &&
+          a.estado === "Activos" && new Date(a.fechaAct) >= new Date() &&
+          a.fechaAperturaInscripcion <= hoy
+        return !disponible && !a.inscrito;
+      });
     }
 
-    setFiltradas(resultado);
-  };
+  setFiltradas(resultado);
+};
 
   // 🧹 Limpiar filtros
   const limpiarFiltros = () => {
