@@ -2,6 +2,7 @@
 
 import { getSession } from "next-auth/react";
 import { InscripcionActividad, CreateInscripcion } from "../../types/inscripcion";
+import { InscripcionActividadReporte } from "../../types/inscripcion";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -185,4 +186,43 @@ export async function buscarInscripcionPorUsuarioYActividad(
   }
 
   return response.json();
+}
+
+export async function getReporteInscripciones({
+  fechaDesde,
+  fechaHasta,
+  cancelada,
+  actividades,
+}: {
+  fechaDesde: string;
+  fechaHasta: string;
+  cancelada: boolean | null;
+  actividades: number[];
+}): Promise<InscripcionActividadReporte[]> {
+  const params = new URLSearchParams({
+    desde: fechaDesde,
+    hasta: fechaHasta,
+  });
+
+  if (cancelada !== null) params.append("cancelada", String(cancelada));
+  if (actividades.length > 0)
+    actividades.forEach((id) => params.append("actividades", String(id)));
+
+  const session = await getSession();
+  const token = session?.accessToken;
+
+  const res = await fetch(`${API_URL}/inscripciones/reportes/fechas?${params}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  }
+  );
+
+  if (!res.ok) {
+    throw new Error("Error al obtener el reporte de inscripciones.");
+  }
+
+  return res.json();
 }

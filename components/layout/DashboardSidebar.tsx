@@ -68,6 +68,23 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                     tooltip="Ver y registrar actividades"
                     collapsed={collapsed}
                 />
+
+                <SidebarLink
+                    href="/dashboard/inscripcion-actividades"
+                    icon={<CalendarDays size={18} />}
+                    label="Inscripción a Actividades"
+                    tooltip="Gestionar inscripciones a actividades"
+                    collapsed={collapsed}
+                />
+
+                <SidebarLink
+                    href="/dashboard/tipos-de-actividad"
+                    icon={<CalendarDays size={18} />}
+                    label="Tipos de Actividad"
+                    tooltip="Gestión de tipos de actividad"
+                    collapsed={collapsed}
+                />
+
                 <SidebarLink
                     href="/dashboard/espacios"
                     icon={<Building2 size={18} />}
