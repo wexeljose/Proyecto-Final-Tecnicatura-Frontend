@@ -11,7 +11,8 @@ import {
     Building2,
     ClipboardList,
     MapPin,
-    BarChart3,
+    FileSearch,
+    ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
@@ -53,14 +54,22 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                     collapsed={collapsed}
                 />
 
-                <SidebarLink 
+                <SidebarLink
                     href="/dashboard/perfiles"
                     icon={<Users size={18} />}
                     label="Perfiles"
                     tooltip="Gestión de perfiles y roles"
                     collapsed={collapsed}
                 />
-                
+
+                <SidebarLink
+                    href="/dashboard/funcionalidades"
+                    icon={<ShieldCheck size={18} />}    // ← ícono para permisos/funciones
+                    label="Funcionalidades"
+                    tooltip="Gestión de funcionalidades y accesos"
+                    collapsed={collapsed}
+                />
+
                 <SidebarLink
                     href="/dashboard/actividades"
                     icon={<CalendarDays size={18} />}
@@ -86,7 +95,7 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                 />
 
                 <SidebarLink
-                    href="/dashboard/espacios"
+                    href="/dashboard/recursos"
                     icon={<Building2 size={18} />}
                     label="Espacios"
                     tooltip="Administrar espacios y salas"
@@ -100,7 +109,7 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                     collapsed={collapsed}
                 />
                 <SidebarLink
-                    href="/dashboard/reservas"
+                    href="/components/layout/reserva"
                     icon={<ClipboardList size={18} />}
                     label="Reservas"
                     tooltip="Gestión de reservas de actividades"
@@ -114,10 +123,10 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                     collapsed={collapsed}
                 />
                 <SidebarLink
-                    href="/dashboard/reportes"
-                    icon={<BarChart3 size={18} />}
-                    label="Reportes"
-                    tooltip="Ver estadísticas y reportes"
+                    href="/dashboard/auditorias"
+                    icon={<FileSearch size={18} />}
+                    label="Auditorías"
+                    tooltip="Registro y consulta de auditorías del sistema"
                     collapsed={collapsed}
                 />
             </nav>

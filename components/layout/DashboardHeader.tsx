@@ -4,11 +4,14 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { User } from "lucide-react";
+import MisDatosModal from "../layout/usuarios/MisDatosModal";
 
 export default function DashboardHeader() {
     const { data: session } = useSession();
-    const usuario = session?.user?.email || "Usuario";
+    const usuario = session?.user?.name || "Usuario";
+    const email = session?.user?.email || "";
     const [menuOpen, setMenuOpen] = useState(false);
+    const [mostrarModal, setMostrarModal] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -46,13 +49,23 @@ export default function DashboardHeader() {
                     {usuario}
                 </button>
 
-                {/* Menú desplegable hacia abajo */}
+                {/* Menú desplegable */}
                 <div
                     className={`absolute right-0 top-[calc(100%+0.5rem)] w-44 bg-white border border-gray-200 rounded-md shadow-lg transition-all duration-200 ease-out z-50
                     ${menuOpen ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-3 pointer-events-none"}`}
                 >
                     {/* Flecha arriba */}
                     <div className="absolute right-4 -top-2 w-3 h-3 bg-white border-l border-t border-gray-200 rotate-45"></div>
+
+                    <button
+                        onClick={() => {
+                            setMostrarModal(true);
+                            setMenuOpen(false);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-100 hover:text-blue-900 rounded-md transition"
+                    >
+                        Mis datos
+                    </button>
 
                     <button
                         onClick={() => signOut({ callbackUrl: "/login" })}
@@ -62,12 +75,14 @@ export default function DashboardHeader() {
                     </button>
                 </div>
             </div>
+
+            {/* Modal de edición */}
+            {mostrarModal && (
+                <MisDatosModal
+                    usuarioEmail={email}
+                    onClose={() => setMostrarModal(false)}
+                />
+            )}
         </header>
     );
 }
-
-
-
-
-
-
