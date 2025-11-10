@@ -109,7 +109,7 @@ export default function DashboardSidebar({ collapsed, onToggle }: Props) {
                     collapsed={collapsed}
                 />
                 <SidebarLink
-                    href="/components/layout/reserva"
+                    href="/dashboard/reserva"
                     icon={<ClipboardList size={18} />}
                     label="Reservas"
                     tooltip="Gestión de reservas de actividades"
