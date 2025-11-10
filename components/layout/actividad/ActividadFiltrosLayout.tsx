@@ -45,7 +45,7 @@ const ActividadFiltrosLayout: React.FC<Props> = ({
         >
           <option value="">Todos</option>
           <option value="Activo">Activo</option>
-          <option value="Inactivo">Inactivo</option>
+          <option value="Inactivos">Inactivos</option>
         </select>
       </div>
 
