@@ -28,8 +28,8 @@ import ActividadDetalleModal from "../../../components/layout/inscripcion/Activi
 import { confirmarAccion } from "../../../.idea/utils/confirmarAccion";
 
 export default function InscripcionActividadesPage() {
-  const { data: session } = useSession();
-  const userId = session?.user?.id;
+  const { data: session, status } = useSession();
+  const userId = session?.user?.id ? String(session.user.id) : null;
 
   const [actividades, setActividades] = useState<ActividadConInscripcion[]>([]);
   const [filtradas, setFiltradas] = useState<ActividadConInscripcion[]>([]);

@@ -5,17 +5,18 @@ import axios, { AxiosError } from "axios";
 
 interface BackendLoginResponse {
     token: string;
-    id: string; // ✅ Agregar el ID
+    id: string;
     usuario?: {
+        id: string;
         nombre1: string;
         apellido1: string;
         correo: string;
     };
 }
 
-type AuthenticatedUser = User & {
-    token?: string;
-};
+//type AuthenticatedUser = User & {
+//    token?: string;
+//};
 
 const handler = NextAuth({
     providers: [
@@ -49,11 +50,11 @@ const handler = NextAuth({
 
                     const data = res.data;
                     
-                    console.log("✅ Respuesta del backend:", data); // Debug
+                    console.log("✅ Respuesta del backend:", data);
                     
-                    if (data && data.token && data.id) {
+                    if (data && data.token && data.usuario && data.usuario.id) {
                         return {
-                            id: data.id, // ✅ ID real del usuario
+                            id: String(data.usuario.id),
                             name:
                                 data.usuario?.nombre1 && data.usuario?.apellido1
                                     ? `${data.usuario.nombre1} ${data.usuario.apellido1}`
@@ -74,22 +75,21 @@ const handler = NextAuth({
         }),
     ],
 
-    // 🔹 Página personalizada de login
     pages: {
         signIn: "/login",
     },
 
-    // Callbacks
     callbacks: {
-        async jwt({ token, user }) {
+        // ✅ AQUÍ: Agregar account a los parámetros
+        async jwt({ token, user, account }) {
             if (user) {
                 token.accessToken = (user as unknown as { token: string }).token;
-                token.id = user.id; // ✅ Guardar ID en el token
+                token.id = user.id;
                 token.email = user.email;
                 token.name = user.name;
             }
 
-            // 🟢 Login con Google
+            // 🟢 Login con Google - ahora account está definido
             if (account?.provider === "google" && user?.email) {
                 try {
                     const res = await axios.post<BackendLoginResponse>(
@@ -100,8 +100,11 @@ const handler = NextAuth({
                     const data = res.data;
                     if (data && data.token) {
                         token.accessToken = data.token;
-                        // 👇 También asignamos el nombre si viene de Google
                         token.name = user.name ?? "Usuario Google";
+                        // ✅ También guardar el ID de Google si viene
+                        if (data.usuario?.id) {
+                            token.id = data.usuario.id;
+                        }
                     } else {
                         console.warn("El usuario de Google no existe en el sistema.");
                     }
@@ -116,8 +119,10 @@ const handler = NextAuth({
 
         // Sesión visible en el frontend
         async session({ session, token }) {
+            if (session.user) {
+                session.user.id = String(token.id);
+            }
             session.accessToken = token.accessToken as string;
-            session.user.id = token.id as string; // ✅ Pasar ID a la sesión
             session.user.email = token.email as string;
             session.user.name = token.name as string;
             return session;
@@ -134,7 +139,6 @@ const handler = NextAuth({
         },
     },
 
-    // Clave secreta de NextAuth
     secret: process.env.NEXTAUTH_SECRET,
 });
 
