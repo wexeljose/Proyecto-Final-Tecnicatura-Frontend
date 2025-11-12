@@ -77,22 +77,23 @@ export async function eliminarPerfil(id: number) {
     return response.json();
   }
 
-  // Crear un nuevo perfil
   export async function crearPerfil(data: { nombrePerfil: string; descripcion: string }) {
-    const session = await getSession();
-    const token = session?.accessToken;
+  const session = await getSession();
+  const token = session?.accessToken;
 
-    const response = await fetch(`${API_URL}/perfiles/registro`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    }); 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`Error al crear perfil: ${text}`);
-    }
-    return response.json();
+  const response = await fetch(`${API_URL}/perfiles/registro`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Error al crear perfil: ${text}`);
   }
+
+  return response.json();
+}
