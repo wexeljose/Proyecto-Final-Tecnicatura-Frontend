@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { toast } from "react-hot-toast";
-import { listarAuditorias } from "../../services/auditoria";
+import { buscarAuditorias } from "../../services/auditoria";
 import { Auditoria, FiltrosAuditoria } from "../../../types/auditoria";
 import FiltrosAuditoriaPanel from "../../../components/layout/auditoria/FiltrosAuditoria";
 import TablaAuditoria from "../../../components/layout/auditoria/TablaAuditoria";
@@ -12,13 +12,7 @@ export default function AuditoriasPage() {
     const { data: session } = useSession();
     const token = (session?.accessToken as string) ?? "";
 
-    // datos de la página actual
     const [auditorias, setAuditorias] = useState<Auditoria[]>([]);
-    const [page, setPage] = useState(0);
-    const [size] = useState(50);
-    const [totalPages, setTotalPages] = useState(0);
-
-    // filtros instantáneos
     const [filtros, setFiltros] = useState<FiltrosAuditoria>({
         nombreUsuario: "",
         operacion: "",
@@ -28,72 +22,44 @@ export default function AuditoriasPage() {
         terminal: "",
     });
 
+    const [page, setPage] = useState(0);
+    const [size] = useState(50);
+
+    // 🔹 Carga inicial sin filtros
     useEffect(() => {
         if (!token) return;
-        (async () => {
-            try {
-                const res = await listarAuditorias(token, page, size);
-                setAuditorias(res.content ?? []);
-                setTotalPages(res.totalPages ?? 0);
-            } catch {
-                toast.error("Error al cargar auditorías ❌");
-            }
-        })();
-    }, [token, page, size]);
+        cargarAuditorias();
+    }, [token]);
 
-    const parseISO = (s: string) => {
-        const d = new Date(s);
-        return isNaN(d.getTime()) ? null : d;
+    const cargarAuditorias = async () => {
+        try {
+            const res = await buscarAuditorias(token, filtros);
+            setAuditorias(res ?? []);
+            setPage(0);
+        } catch {
+            toast.error("Error al cargar auditorías ❌");
+        }
     };
 
-    const toStartOfDay = (yyyyMMdd: string) =>
-        new Date(`${yyyyMMdd}T00:00:00`);
-    const toEndOfDay = (yyyyMMdd: string) =>
-        new Date(`${yyyyMMdd}T23:59:59.999`);
+    // 🔹 Paginación local
+    const paginadas = useMemo(() => {
+        const start = page * size;
+        const end = start + size;
+        return auditorias.slice(start, end);
+    }, [auditorias, page, size]);
 
 
-    // filtro instantáneo en memoria (sobre la página cargada)
-    const filtradas = useMemo(() => {
-        let lista = [...auditorias];
+    const onBuscar = async () => {
+        const datos = await buscarAuditorias(token, filtros);
+        setAuditorias(datos);
+    };
 
-        if (filtros.nombreUsuario.trim()) {
-            const t = filtros.nombreUsuario.trim().toLowerCase();
-            lista = lista.filter((a) => a.nombreUsuario?.toLowerCase().includes(t));
-        }
+    // 🔥 EJECUTA LA BÚSQUEDA AUTOMÁTICAMENTE CUANDO CAMBIAN LOS FILTROS
+    useEffect(() => {
+        onBuscar();
+    }, [filtros]);
 
-        if (filtros.operacion.trim()) {
-            const t = filtros.operacion.trim().toLowerCase();
-            lista = lista.filter((a) => a.operacion?.toLowerCase().includes(t));
-        }
 
-        if (filtros.seccion.trim()) {
-            const t = filtros.seccion.trim().toLowerCase();
-            lista = lista.filter((a) => a.seccion?.toLowerCase().includes(t));
-        }
-
-        if (filtros.terminal.trim()) {
-            const t = filtros.terminal.trim().toLowerCase();
-            lista = lista.filter((a) => a.terminal?.toLowerCase().includes(t));
-        }
-
-        const hasDesde = filtros.fechaDesde.trim().length > 0;
-        const hasHasta = filtros.fechaHasta.trim().length > 0;
-
-        if (hasDesde || hasHasta) {
-            const desde = hasDesde ? toStartOfDay(filtros.fechaDesde.trim()) : null;
-            const hasta = hasHasta ? toEndOfDay(filtros.fechaHasta.trim()) : null;
-
-            lista = lista.filter((a) => {
-                const fa = parseISO(a.fecha);
-                if (!fa) return false;
-                if (desde && fa < desde) return false;
-                if (hasta && fa > hasta) return false;
-                return true;
-            });
-        }
-
-        return lista;
-    }, [auditorias, filtros]);
 
     return (
         <div className="p-6">
@@ -101,9 +67,8 @@ export default function AuditoriasPage() {
 
             <div className="flex items-start gap-6">
                 <div className="flex-1">
-                    <TablaAuditoria datos={filtradas} />
+                    <TablaAuditoria datos={paginadas} />
 
-                    {/* Paginación simple */}
                     <div className="flex items-center gap-2 mt-3">
                         <button
                             onClick={() => setPage((p) => Math.max(0, p - 1))}
@@ -112,12 +77,18 @@ export default function AuditoriasPage() {
                         >
                             Anterior
                         </button>
+
                         <span className="text-sm text-gray-600">
-              Página {page + 1} de {Math.max(totalPages, 1)}
-            </span>
+                            Página {page + 1} de {Math.max(Math.ceil(auditorias.length / size), 1)}
+                        </span>
+
                         <button
-                            onClick={() => setPage((p) => (p + 1 < totalPages ? p + 1 : p))}
-                            disabled={page + 1 >= totalPages}
+                            onClick={() =>
+                                setPage((p) =>
+                                    p + 1 < Math.ceil(auditorias.length / size) ? p + 1 : p
+                                )
+                            }
+                            disabled={page + 1 >= Math.ceil(auditorias.length / size)}
                             className="px-3 py-1 text-sm border rounded disabled:opacity-50"
                         >
                             Siguiente
@@ -125,8 +96,11 @@ export default function AuditoriasPage() {
                     </div>
                 </div>
 
-                {/* Sidebar de filtros (igual estilo a Usuarios) */}
-                <FiltrosAuditoriaPanel filtros={filtros} setFiltros={setFiltros} />
+                <FiltrosAuditoriaPanel
+                    filtros={filtros}
+                    setFiltros={setFiltros}
+                    onBuscar={onBuscar}
+                />
             </div>
         </div>
     );

@@ -5,9 +5,10 @@ import type { FiltrosAuditoria } from "../../../types/auditoria";
 interface Props {
     filtros: FiltrosAuditoria;
     setFiltros: (f: FiltrosAuditoria) => void;
+    onBuscar: () => void;
 }
 
-export default function FiltrosAuditoria({ filtros, setFiltros }: Props) {
+export default function FiltrosAuditoria({ filtros, setFiltros, onBuscar }: Props) {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFiltros({ ...filtros, [name]: value });
@@ -21,6 +22,7 @@ export default function FiltrosAuditoria({ filtros, setFiltros }: Props) {
             fechaDesde: "",
             fechaHasta: "",
             terminal: "",
+
         });
 
     return (
@@ -82,9 +84,21 @@ export default function FiltrosAuditoria({ filtros, setFiltros }: Props) {
             />
 
             <div className="flex flex-col gap-1.5 pt-2 border-t border-gray-200 mt-1">
+
+                {/* Botón Buscar */}
                 <button
-                    onClick={limpiar}
-                    className="inline-flex items-center justify-center gap-1.5 px-2 py-1 bg-gray-50 text-gray-700 text-sm font-medium rounded hover:bg-gray-100"
+                    onClick={onBuscar}
+                    className="inline-flex items-center justify-center px-2 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700"
+                >
+                    Buscar
+                </button>
+
+                {/* Botón Limpiar */}
+                <button
+                    onClick={() => {
+                        limpiar();
+                    }}
+                    className="inline-flex items-center justify-center px-2 py-1.5 bg-gray-50 text-gray-700 text-sm font-medium rounded hover:bg-gray-100"
                 >
                     Limpiar
                 </button>
@@ -92,4 +106,3 @@ export default function FiltrosAuditoria({ filtros, setFiltros }: Props) {
         </div>
     );
 }
-
