@@ -1,43 +1,45 @@
 import NextAuth, { type User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
+
+// ------------------------------------------------------
+// 📌 Tipos del backend
+// ------------------------------------------------------
+interface BackendUser {
+    id: string;
+    nombre1: string;
+    apellido1: string;
+    correo: string;
+    tipoUsuario: string;  // 🔹 LO ÚNICO QUE NOS IMPORTA
+}
 
 interface BackendLoginResponse {
     token: string;
-    id: string;
-    usuario?: {
-        id: string;
-        nombre1: string;
-        apellido1: string;
-        correo: string;
-    };
+    usuario?: BackendUser;
 }
 
-//type AuthenticatedUser = User & {
-//    token?: string;
-//};
-
+// ------------------------------------------------------
+// 📌 NextAuth handler (LOGIN Google + Credenciales)
+// ------------------------------------------------------
 const handler = NextAuth({
     providers: [
-        // 🔹 Login con Google
+        // ------------------ GOOGLE ------------------
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID ?? "",
             clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
         }),
 
-        // 🔹 Login con credenciales propias
+        // ---------------- CREDENCIALES ----------------
         CredentialsProvider({
             name: "Credentials",
             credentials: {
                 username: { label: "Correo", type: "text" },
                 password: { label: "Contraseña", type: "password" },
             },
+
             async authorize(credentials): Promise<User | null> {
-                if (!credentials?.username || !credentials?.password) {
-                    console.error("Faltan credenciales");
-                    return null;
-                }
+                if (!credentials?.username || !credentials?.password) return null;
 
                 try {
                     const res = await axios.post<BackendLoginResponse>(
@@ -49,26 +51,22 @@ const handler = NextAuth({
                     );
 
                     const data = res.data;
-                    
-                    console.log("✅ Respuesta del backend:", data);
-                    
-                    if (data && data.token && data.usuario && data.usuario.id) {
-                        return {
-                            id: String(data.usuario.id),
-                            name:
-                                data.usuario?.nombre1 && data.usuario?.apellido1
-                                    ? `${data.usuario.nombre1} ${data.usuario.apellido1}`
-                                    : "Usuario",
-                            email: data.usuario?.correo ?? credentials.username,
+                    const u = data.usuario;
+
+                    if (data.token && u) {
+                        const user: User = {
+                            id: String(u.id),
+                            name: `${u.nombre1} ${u.apellido1}`,
+                            email: u.correo,
                             token: data.token,
-                        } as User;
+                            tipoUsuario: u.tipoUsuario, // ⭐ ROL DEL BACKEND
+                        };
+
+                        return user;
                     }
 
-                    console.error("❌ Respuesta del backend incompleta:", data);
                     return null;
-                } catch (error) {
-                    const err = error as AxiosError;
-                    console.error("❌ Error en login:", err.response?.data || err.message);
+                } catch {
                     return null;
                 }
             },
@@ -80,16 +78,20 @@ const handler = NextAuth({
     },
 
     callbacks: {
-        // ✅ AQUÍ: Agregar account a los parámetros
+        // ------------------------------------------------------
+        // 📌 JWT Callback → Guarda datos en el token
+        // ------------------------------------------------------
         async jwt({ token, user, account }) {
+            // Login normal
             if (user) {
-                token.accessToken = (user as unknown as { token: string }).token;
+                token.accessToken = user.token;
                 token.id = user.id;
-                token.email = user.email;
-                token.name = user.name;
+                token.email = user.email!;
+                token.name = user.name!;
+                token.tipoUsuario = user.tipoUsuario; // ⭐ IMPORTANTE
             }
 
-            // 🟢 Login con Google - ahora account está definido
+            // Login con Google → buscar usuario en tu backend
             if (account?.provider === "google" && user?.email) {
                 try {
                     const res = await axios.post<BackendLoginResponse>(
@@ -98,43 +100,45 @@ const handler = NextAuth({
                     );
 
                     const data = res.data;
-                    if (data && data.token) {
+                    const u = data.usuario;
+
+                    if (u) {
                         token.accessToken = data.token;
-                        token.name = user.name ?? "Usuario Google";
-                        // ✅ También guardar el ID de Google si viene
-                        if (data.usuario?.id) {
-                            token.id = data.usuario.id;
-                        }
-                    } else {
-                        console.warn("El usuario de Google no existe en el sistema.");
+                        token.id = u.id;
+                        token.tipoUsuario = u.tipoUsuario;
+                        token.email = u.correo;
+                        token.name = `${u.nombre1} ${u.apellido1}`;
                     }
-                } catch (error) {
-                    const err = error as AxiosError;
-                    console.error("Error al autenticar Google en backend:", err.message);
+                } catch (e) {
+                    console.error("Error login Google backend:", e);
                 }
             }
 
             return token;
         },
 
-        // Sesión visible en el frontend
+        // ------------------------------------------------------
+        // 📌 Session Callback → Expone datos al frontend
+        // ------------------------------------------------------
         async session({ session, token }) {
-            if (session.user) {
-                session.user.id = String(token.id);
-            }
-            session.accessToken = token.accessToken as string;
-            session.user.email = token.email as string;
-            session.user.name = token.name as string;
+            session.user.id = String(token.id);
+            session.user.email = token.email ?? "";
+            session.user.name = token.name ?? "";
+            session.user.tipoUsuario = token.tipoUsuario; // ⭐ LO ÚNICO QUE QUIERES
+            session.accessToken = token.accessToken ?? "";
             return session;
         },
 
-        // Redirección después del login
+        // ------------------------------------------------------
+        // 📌 Redirect
+        // ------------------------------------------------------
         async redirect({ url, baseUrl }) {
-            if (url && url.includes("/api/auth/callback/google")) {
+            if (url.includes("/api/auth/callback/google"))
                 return `${baseUrl}/dashboard`;
-            }
+
             if (url.startsWith("/")) return `${baseUrl}${url}`;
             if (url.startsWith(baseUrl)) return url;
+
             return `${baseUrl}/dashboard`;
         },
     },
