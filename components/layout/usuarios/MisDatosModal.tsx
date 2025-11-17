@@ -2,57 +2,67 @@
 
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { toast } from "react-hot-toast";
-import { obtenerUsuarios, actualizarMisDatos } from "../../../app/services/usuarios";
+import { getMisDatos, actualizarMisDatos } from "../../../app/services/usuarios";
 import { Usuario, UpdateUsuario } from "../../../types/usuarios";
 import { User, Mail, Calendar, Home, Lock, Hash } from "lucide-react";
 
-// 🔹 Tipo local extendido que incluye la contraseña opcional
+// 🔹 Extiende UpdateUsuario para permitir "contrasena" opcional
 type MisDatosForm = UpdateUsuario & { contrasena?: string };
 
 interface Props {
-    usuarioEmail: string;
     onClose: () => void;
 }
 
-export default function MisDatosModal({ usuarioEmail, onClose }: Props) {
+export default function MisDatosModal({ onClose }: Props) {
     const [usuario, setUsuario] = useState<Usuario | null>(null);
     const [form, setForm] = useState<Partial<MisDatosForm>>({});
     const [repetirContrasena, setRepetirContrasena] = useState("");
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
+    // ---------------------------
+    // 🟦 Cargar mis datos desde /usuarios/mis-datos
+    // ---------------------------
     useEffect(() => {
         const cargarDatos = async () => {
             try {
-                const usuarios: Usuario[] = await obtenerUsuarios();
-                const actual = usuarios.find((u) => u.correo === usuarioEmail);
-                if (actual) {
-                    setUsuario(actual);
-                    setForm({
-                        nombre1: actual.nombre1,
-                        nombre2: actual.nombre2,
-                        apellido1: actual.apellido1,
-                        apellido2: actual.apellido2,
-                        fechaNac: actual.fechaNac,
-                        calle: actual.calle,
-                        nroPuerta: actual.nroPuerta,
-                        apto: actual.apto,
-                    });
-                }
-            } catch {
+                const actual = await getMisDatos(); // 🔥 SOLO TUS DATOS
+
+                setUsuario(actual);
+
+                setForm({
+                    nombre1: actual.nombre1,
+                    nombre2: actual.nombre2,
+                    apellido1: actual.apellido1,
+                    apellido2: actual.apellido2,
+                    fechaNac: actual.fechaNac,
+                    calle: actual.calle,
+                    nroPuerta: actual.nroPuerta,
+                    apto: actual.apto,
+                });
+
+            } catch (err) {
+                console.error(err);
                 toast.error("Error al cargar tus datos ❌");
             } finally {
                 setLoading(false);
             }
         };
-        cargarDatos();
-    }, [usuarioEmail]);
 
+        cargarDatos();
+    }, []);
+
+    // ---------------------------
+    // 🟦 Manejar cambios del formulario
+    // ---------------------------
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
     };
 
+    // ---------------------------
+    // 🟦 Enviar cambios
+    // ---------------------------
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
 
@@ -63,17 +73,23 @@ export default function MisDatosModal({ usuarioEmail, onClose }: Props) {
 
         try {
             setSaving(true);
+
             await actualizarMisDatos(form as UpdateUsuario);
+
             toast.success("Datos actualizados correctamente ✅");
             onClose();
+
         } catch (error) {
-            if (error instanceof Error) console.error(error.message);
+            console.error(error);
             toast.error("Error al actualizar tus datos ❌");
         } finally {
             setSaving(false);
         }
     };
 
+    // ---------------------------
+    // 🟦 Loading UI
+    // ---------------------------
     if (loading)
         return (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -85,6 +101,9 @@ export default function MisDatosModal({ usuarioEmail, onClose }: Props) {
 
     if (!usuario) return null;
 
+    // ---------------------------
+    // 🟩 FORMULARIO COMPLETO
+    // ---------------------------
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-8 border border-gray-200">
@@ -105,6 +124,7 @@ export default function MisDatosModal({ usuarioEmail, onClose }: Props) {
                                 className="w-full pl-10 pr-3 py-2 border rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
                             />
                         </div>
+
                         <div className="relative">
                             <User className="absolute left-3 top-2.5 text-gray-400" size={18} />
                             <input
@@ -128,6 +148,7 @@ export default function MisDatosModal({ usuarioEmail, onClose }: Props) {
                                 className="w-full pl-10 pr-3 py-2 border rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
                             />
                         </div>
+
                         <div className="relative">
                             <User className="absolute left-3 top-2.5 text-gray-400" size={18} />
                             <input
@@ -152,6 +173,7 @@ export default function MisDatosModal({ usuarioEmail, onClose }: Props) {
                                 className="w-full pl-10 pr-3 py-2 border rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
                             />
                         </div>
+
                         <div className="relative">
                             <Home className="absolute left-3 top-2.5 text-gray-400" size={18} />
                             <input
@@ -195,7 +217,6 @@ export default function MisDatosModal({ usuarioEmail, onClose }: Props) {
                                 value={usuario.correo}
                                 disabled
                                 className="w-full pl-10 pr-3 py-2 border rounded-md bg-gray-100 text-gray-500"
-                                placeholder="Correo (no modificable)"
                             />
                         </div>
 
@@ -205,7 +226,6 @@ export default function MisDatosModal({ usuarioEmail, onClose }: Props) {
                                 value={`${usuario.tipoDocumento} ${usuario.nroDocumento}`}
                                 disabled
                                 className="w-full pl-10 pr-3 py-2 border rounded-md bg-gray-100 text-gray-500"
-                                placeholder="Documento"
                             />
                         </div>
                     </div>
@@ -214,7 +234,6 @@ export default function MisDatosModal({ usuarioEmail, onClose }: Props) {
                         value={usuario.tipoUsuario}
                         disabled
                         className="w-full border rounded-md px-3 py-2 bg-gray-100 text-gray-500"
-                        placeholder="Tipo de usuario"
                     />
 
                     {/* Cambio de contraseña */}
@@ -235,6 +254,7 @@ export default function MisDatosModal({ usuarioEmail, onClose }: Props) {
                                 className="w-full pl-10 pr-3 py-2 border rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
                             />
                         </div>
+
                         <div className="relative">
                             <Lock className="absolute left-3 top-2.5 text-gray-400" size={18} />
                             <input
@@ -257,12 +277,11 @@ export default function MisDatosModal({ usuarioEmail, onClose }: Props) {
                         >
                             Cancelar
                         </button>
+
                         <button
                             type="submit"
                             className={`px-4 py-2 text-white rounded-md transition ${
-                                saving
-                                    ? "bg-gray-400 cursor-not-allowed"
-                                    : "bg-blue-700 hover:bg-blue-800"
+                                saving ? "bg-gray-400 cursor-not-allowed" : "bg-blue-700 hover:bg-blue-800"
                             }`}
                             disabled={saving}
                         >
