@@ -142,4 +142,27 @@ export async function actualizarMisDatos(datos: UpdateUsuario) {
     return await res.json();
 }
 
+/**
+ * 🔹 Obtener mis datos (usuario actual)
+ */
+export async function getMisDatos() {
+    const session = await getSession();
+    const token = session?.accessToken;
+
+    const res = await fetch(`${API_URL}/usuarios/mis-datos`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Error al obtener mis datos: ${text}`);
+    }
+
+    return res.json();
+}
+
 
