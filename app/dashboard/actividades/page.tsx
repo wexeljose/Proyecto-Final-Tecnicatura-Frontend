@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 
-// 🧩 Servicios
+// Servicios
 import {
   obtenerActividades,
   eliminarActividad,
@@ -11,10 +11,10 @@ import {
   crearActividad,
 } from "../../services/actividad";
 
-// 🧾 Tipos
+// Tipos
 import { Actividad, UpdateActividad } from "../../../types/actividad";
 
-// 🧱 Componentes
+// Componentes
 import ActividadTable from "../../../components/layout/actividad/ActividadTable";
 import EditActividadModal from "../../../components/layout/actividad/ActividadEditModal";
 import CrearActividadModal from "../../../components/layout/actividad/ActividadCreateModal";
@@ -22,14 +22,20 @@ import ActividadFiltrosLayout from "../../../components/layout/actividad/Activid
 
 export default function ListadoActividades() {
   const [actividades, setActividades] = useState<Actividad[]>([]);
+  const [filtradas, setFiltradas] = useState<Actividad[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Filtros
   const [filtroNombre, setFiltroNombre] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
+  const [filtroFechaInicio, setFiltroFechaInicio] = useState("");
+  const [filtroFechaFin, setFiltroFechaFin] = useState("");
+
+  // Modales
   const [crearModal, setCrearModal] = useState(false);
   const [selectedActividad, setSelectedActividad] = useState<Actividad | null>(null);
-  const [filtradas, setFiltradas] = useState<Actividad[]>([]);
 
-  // 🚀 Cargar actividades
+  // Cargar actividades
   async function cargarActividades() {
     setLoading(true);
     try {
@@ -37,8 +43,7 @@ export default function ListadoActividades() {
       data.sort((a, b) => a.id - b.id);
       setActividades(data);
       setFiltradas(data);
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast.error("Error al cargar actividades ❌");
     } finally {
       setLoading(false);
@@ -49,76 +54,89 @@ export default function ListadoActividades() {
     cargarActividades();
   }, []);
 
-  // 🔍 Filtros
+  // Aplicar filtros
   const aplicarFiltros = () => {
     let filtradasTmp = [...actividades];
+
+    // Nombre
     if (filtroNombre.trim()) {
       filtradasTmp = filtradasTmp.filter((a) =>
         a.nombre.toLowerCase().includes(filtroNombre.toLowerCase())
       );
     }
+
+    // Estado
     if (filtroEstado) {
       filtradasTmp = filtradasTmp.filter((a) => a.estado === filtroEstado);
     }
+
+    // Fecha inicio
+    if (filtroFechaInicio) {
+      filtradasTmp = filtradasTmp.filter(
+        (a) => new Date(a.fechaAct) >= new Date(filtroFechaInicio)
+      );
+    }
+
+    // Fecha fin
+    if (filtroFechaFin) {
+      filtradasTmp = filtradasTmp.filter(
+        (a) => new Date(a.fechaAct) <= new Date(filtroFechaFin)
+      );
+    }
+
     setFiltradas(filtradasTmp);
   };
 
-  // 🗑️ Eliminar
+  // Limpiar filtros
+  const limpiarFiltros = () => {
+    setFiltroNombre("");
+    setFiltroEstado("");
+    setFiltroFechaInicio("");
+    setFiltroFechaFin("");
+    setFiltradas(actividades);
+  };
+
+  // Eliminar
   const handleDelete = async (id: number) => {
-    const confirmado = window.confirm("¿Seguro que deseas eliminar esta actividad?");
-    if (!confirmado) return;
+    if (!window.confirm("¿Seguro que deseas eliminar esta actividad?")) return;
 
     try {
-      await toast.promise(eliminarActividad(id), {
-        loading: "Eliminando...",
-        success: "Actividad eliminada ✅",
-        error: "No se pudo eliminar ❌",
-      });
+      await eliminarActividad(id);
+      toast.success("Actividad eliminada");
       await cargarActividades();
-    } catch (error) {
-      console.error(error);
+    } catch {
+      toast.error("No se pudo eliminar");
     }
   };
 
-  // ✏️ Editar
+  // Editar
   const handleEdit = (actividad: Actividad) => {
     setSelectedActividad(actividad);
   };
 
-  // 💾 Guardar cambios
+  // Guardar edición
   const handleSave = async (id: number, data: UpdateActividad) => {
-    const confirmado = window.confirm("¿Confirmas la modificación?");
-    if (!confirmado) return;
-
     try {
       await actualizarActividad(id, data);
-      toast.success("Actividad actualizada ✅");
+      toast.success("Actualizada");
       await cargarActividades();
       setSelectedActividad(null);
     } catch {
-      toast.error("Error al actualizar ❌");
+      toast.error("No se pudo actualizar");
     }
   };
 
-  // ➕ Crear
+  // Crear actividad
   const handleCrear = async (data: any) => {
     try {
       await crearActividad(data);
-      toast.success("Actividad creada ✅");
+      toast.success("Actividad creada");
       await cargarActividades();
       setCrearModal(false);
     } catch {
-      toast.error("Error al crear ❌");
+      toast.error("Error al crear");
     }
   };
-
-  // 🧠 Verificar importaciones
-  console.log({
-    ActividadTable,
-    EditActividadModal,
-    CrearActividadModal,
-    ActividadFiltrosLayout,
-  });
 
   if (loading) return <p>Cargando actividades...</p>;
 
@@ -127,7 +145,6 @@ export default function ListadoActividades() {
       <h1 className="text-xl font-bold mb-4">Gestión de Actividades</h1>
 
       <div className="flex gap-6">
-        {/* Tabla */}
         <div className="flex-1">
           <ActividadTable
             actividades={filtradas}
@@ -136,18 +153,21 @@ export default function ListadoActividades() {
           />
         </div>
 
-        {/* Panel de filtros */}
         <ActividadFiltrosLayout
           filtroNombre={filtroNombre}
           setFiltroNombre={setFiltroNombre}
           filtroEstado={filtroEstado}
           setFiltroEstado={setFiltroEstado}
+          filtroFechaInicio={filtroFechaInicio}
+          setFiltroFechaInicio={setFiltroFechaInicio}
+          filtroFechaFin={filtroFechaFin}
+          setFiltroFechaFin={setFiltroFechaFin}
           aplicarFiltros={aplicarFiltros}
+          limpiarFiltros={limpiarFiltros}
           onCrear={() => setCrearModal(true)}
         />
       </div>
 
-      {/* Modal editar */}
       {selectedActividad && (
         <EditActividadModal
           actividad={selectedActividad}
@@ -156,7 +176,6 @@ export default function ListadoActividades() {
         />
       )}
 
-      {/* Modal crear */}
       {crearModal && (
         <CrearActividadModal
           onClose={() => setCrearModal(false)}
