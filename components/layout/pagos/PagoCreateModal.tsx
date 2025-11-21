@@ -3,18 +3,20 @@ import { useEffect, useMemo, useState } from "react";
 import type { PagoCreate, FormaCobro } from "../../../types/pago";
 import type { Recurso } from "../../../types/recurso";
 import type { Usuario } from "../../../types/usuarios";
+import {Actividad} from "../../../types/actividad";
 
 export function nombreCorto(u: Usuario) {
     return `${u.nombre1} ${u.apellido1}`.trim();
 }
 
 export default function PagoCreateModal({
-                                            onClose, onCrear, recursos, usuarios, idUsuarioActual,
+                                            onClose, onCrear, recursos, usuarios, actividades, idUsuarioActual,
                                         }: {
     onClose: () => void;
     onCrear: (dto: PagoCreate) => void;
     recursos: Recurso[];
-    usuarios: Usuario[];          // 👈 viene de tu servicio
+    usuarios: Usuario[];
+    actividades: Actividad []// 👈 viene de tu servicio
     idUsuarioActual: number;
 }) {
     // Si el usuario actual no está en activos, seleccionamos el primero activo
@@ -28,6 +30,7 @@ export default function PagoCreateModal({
         formaCobro: "Efectivo",
         esCuota: false,
         idUsuario: defaultUserId,
+        idActividad: null,
         idRecurso: null,
     });
 
@@ -73,8 +76,15 @@ export default function PagoCreateModal({
                         <select
                             className="w-full border rounded px-2 py-1.5 bg-white"
                             value={form.idUsuario}
-                            onChange={(e) => setForm(s => ({ ...s, idUsuario: Number(e.target.value) }))}
-                        >
+                            onChange={(e) => {
+                                const nuevoId = Number(e.target.value);
+                                const u = usuarios.find(x => x.id === nuevoId);
+                                setForm(s => ({
+                                    ...s,
+                                    idUsuario: nuevoId,
+                                    esCuota: u?.tipoUsuario === "Socio" ? s.esCuota : false,
+                                }));
+                            }}>
                             {usuarios.map(u => (
                                 <option key={u.id} value={u.id}>
                                     {nombreCorto(u)} — {u.correo}
@@ -103,19 +113,60 @@ export default function PagoCreateModal({
                     </label>
 
                     <label className="flex items-center gap-2">
-                        <input type="checkbox" {...bind("esCuota")} />
+                        <input
+                            type="checkbox"
+                            {...bind("esCuota")}
+                            onChange={(e) => {
+                                const checked = e.target.checked;
+                                setForm(s => ({
+                                    ...s,
+                                    esCuota: checked,
+                                    idRecurso: checked ? null : s.idRecurso,
+                                    idActividad: checked ? null : s.idActividad,
+                                }));
+                            }}
+                        />
                         <span>Es cuota</span>
                     </label>
+
 
                     <label className="col-span-2">
                         <span className="block mb-1 font-medium">Recurso (opcional)</span>
                         <select
                             className="w-full border rounded px-2 py-1.5 bg-white"
                             value={form.idRecurso ?? 0}
-                            onChange={(e) => setForm(s => ({ ...s, idRecurso: Number(e.target.value) || null }))}
+                            disabled={form.esCuota}
+                            onChange={(e) =>
+                                setForm(s => ({
+                                    ...s,
+                                    idRecurso: Number(e.target.value) || null
+                                }))
+                            }
                         >
                             <option value={0}>Sin recurso</option>
-                            {recursos.map(r => <option key={r.id} value={r.id}>{r.nombre}</option>)}
+                            {recursos.map(r => (
+                                <option key={r.id} value={r.id}>{r.nombre}</option>
+                            ))}
+                        </select>
+                    </label>
+
+                    <label className="col-span-2">
+                        <span className="block mb-1 font-medium">Actividad (opcional)</span>
+                        <select
+                            className="w-full border rounded px-2 py-1.5 bg-white"
+                            value={form.idActividad ?? 0}
+                            disabled={form.esCuota}
+                            onChange={(e) =>
+                                setForm(s => ({
+                                    ...s,
+                                    idActividad: Number(e.target.value) || null
+                                }))
+                            }
+                        >
+                            <option value={0}>Sin actividad</option>
+                            {actividades.map(a => (
+                                <option key={a.id} value={a.id}>{a.nombre}</option>
+                            ))}
                         </select>
                     </label>
                 </div>

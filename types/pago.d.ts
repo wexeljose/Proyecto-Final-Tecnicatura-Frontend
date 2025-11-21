@@ -8,6 +8,7 @@ export interface Pago {
     esCuota: boolean;
     idUsuario: number;
     idRecurso?: number | null;
+    idActividad?: number | null;
 }
 
 export interface PagoCreate {
@@ -17,6 +18,7 @@ export interface PagoCreate {
     esCuota: boolean;
     idUsuario: number;
     idRecurso?: number | null;
+    idActividad?: number | null;
 }
 
 export interface PagoUpdate {
@@ -25,4 +27,5 @@ export interface PagoUpdate {
     formaCobro?: string;
     esCuota?: boolean;
     idRecurso?: number | null;
+    idActividad?: number | null;
 }
