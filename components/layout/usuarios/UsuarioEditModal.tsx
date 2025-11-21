@@ -18,7 +18,7 @@ export default function EditUsuarioModal({ usuario, onClose, onSave }: Props) {
         calle: "",
         nroPuerta: "",
         apto: "",
-        tipoUsuario: "",
+        tipoUsuario: usuario?.tipoUsuario || "Socio",
         estado: "",
         idPerfil: 0,
         socioDatos: null,
@@ -55,15 +55,25 @@ export default function EditUsuarioModal({ usuario, onClose, onSave }: Props) {
     const handleSocioCheck = (name: string, checked: boolean) => {
         setForm((prev) => ({
             ...prev,
-            socioDatos: { ...prev.socioDatos, [name]: checked },
+            socioDatos: {
+                lengSen: prev.socioDatos?.lengSen ?? false,
+                difAudi: prev.socioDatos?.difAudi ?? false,
+                pagoCuotas: prev.socioDatos?.pagoCuotas ?? false,
+                [name]: checked, // ← este pisa el campo correcto
+            },
         }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        onSave(usuario.id, form);
-        onClose();
+
+        await onSave(usuario.id, form); // ⬅️ ESPERA a que termine
+
+        onClose(); // ⬅️ ahora sí se puede cerrar
     };
+
 
     return (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
@@ -130,8 +140,8 @@ export default function EditUsuarioModal({ usuario, onClose, onSave }: Props) {
                             <label className="flex items-center gap-2">
                                 <input
                                     type="checkbox"
-                                    checked={form.socioDatos?.lengSeñas || false}
-                                    onChange={(e) => handleSocioCheck("lengSeñas", e.target.checked)}
+                                    checked={form.socioDatos?.lengSen || false}
+                                    onChange={(e) => handleSocioCheck("lengSen", e.target.checked)}
                                 />
                                 Usa lengua de señas
                             </label>
