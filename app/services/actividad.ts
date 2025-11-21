@@ -25,6 +25,26 @@ export async function obtenerActividades(): Promise<Actividad[]> {
   return response.json();
 }
 
+// Listar actividades a las que se puede inscribirse
+export async function listarActividadesConInscripcion(): Promise<Actividad[]> {
+    const session = await getSession();
+    const token = session?.accessToken;
+
+    const response = await fetch(`${API_URL}/actividades/lista/inscripcion`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Error al obtener actividades con inscripción: ${text}`);
+    }
+    return response.json();
+}
+
 // Crear una nueva actividad
 export async function crearActividad(data: CreateActividad) {
   const session = await getSession();

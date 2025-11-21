@@ -16,6 +16,7 @@ import {
     reportePagos,
 } from "../../services/pago";
 import { obtenerUsuarios } from "../../services/usuarios";
+import { listarActividadesConInscripcion } from "../../services/actividad";
 
 import type { Pago, PagoCreate, PagoUpdate } from "../../../types/pago";
 import type { Recurso } from "../../../types/recurso";
@@ -25,6 +26,7 @@ import PagoTable from "../../../components/layout/pagos/PagoTable";
 import PagoFiltros from "../../../components/layout/pagos/PagoFiltros";
 import PagoCreateModal from "../../../components/layout/pagos/PagoCreateModal";
 import PagoEditModal from "../../../components/layout/pagos/PagoEditModal";
+import {Actividad} from "../../../types/actividad";
 
 /* utils */
 function getErrorMessage(err: unknown): string {
@@ -46,6 +48,7 @@ export default function PagosPage() {
     const [items, setItems] = useState<Pago[]>([]);
     const [recursos, setRecursos] = useState<Recurso[]>([]);
     const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+    const [actividades, setActividades] = useState<Actividad[]>([]);
     const [loading, setLoading] = useState(true);
 
     /* filtros */
@@ -64,20 +67,26 @@ export default function PagosPage() {
     useEffect(() => {
         (async () => {
             try {
-                const [rec, allUsers] = await Promise.all([
+                const [rec, allUsers, acts] = await Promise.all([
                     listarRecursosPorEstado("Activos"),
-                    obtenerUsuarios(), // retorna todos; filtramos activos abajo
+                    obtenerUsuarios(),
+                    listarActividadesConInscripcion(),
                 ]);
                 setRecursos(rec);
-                setUsuarios(allUsers.filter((u: Usuario) => u.estado === "Activos"));
+                setUsuarios(
+                    allUsers.filter(
+                        (u: Usuario) =>
+                            u.estado === "Activos" &&
+                            (u.tipoUsuario === "Socio" || u.tipoUsuario === "NoSocio")
+                    )
+                );
+                setActividades(acts);
 
                 const s = await getSession();
                 setIdUsuarioActual(getUserIdFromSession(s));
 
-                // arranque: sin filtros → reporte combinado
                 setItems(await reportePagos({}));
             } catch (e) {
-                // eslint-disable-next-line no-console
                 console.error(e);
                 toast.error(`No se pudieron cargar datos: ${getErrorMessage(e)}`);
             } finally {
@@ -170,6 +179,7 @@ export default function PagosPage() {
                         onEdit={(p) => setEditItem(p)}
                         usuarios={usuarios}
                         recursos={recursos}
+                        actividades={actividades}
                     />
                 </div>
 
@@ -195,6 +205,7 @@ export default function PagosPage() {
                     onCrear={handleCrear}
                     recursos={recursos}
                     usuarios={usuarios}
+                    actividades={actividades}
                     idUsuarioActual={idUsuarioActual}
                 />
             )}
@@ -205,6 +216,7 @@ export default function PagosPage() {
                     onClose={() => setEditItem(null)}
                     onSave={handleSave}
                     recursos={recursos}
+                    actividades={actividades}
                 />
             )}
         </div>
