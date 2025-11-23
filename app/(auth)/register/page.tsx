@@ -7,6 +7,28 @@ import Link from "next/link";
 import { Mail, Lock, User, Calendar, Home, Hash } from "lucide-react";
 import { crearUsuario } from "../../services/usuarios";
 
+// Tipado del usuario a enviar al backend
+interface UsuarioRequest {
+    nombre1: string;
+    nombre2?: string;
+    apellido1: string;
+    apellido2?: string;
+    fechaNac: string;
+    correo: string;
+    tipoDocumento: string;
+    nroDocumento: string;
+    calle: string;
+    nroPuerta: string;
+    apto?: string;
+    contrasena: string;
+    tipoUsuario: string;
+    socioDatos?: {
+        lengSen: boolean;
+        difAudi: boolean;
+        pagoCuotas: boolean;
+    };
+}
+
 export default function RegisterPage() {
     const router = useRouter();
 
@@ -27,9 +49,8 @@ export default function RegisterPage() {
         tipoUsuario: "",
     });
 
-    // ✅ Nuevos campos si el usuario es Socio
     const [socioDatos, setSocioDatos] = useState({
-        lengSeñas: false,
+        lengSen: false,
         difAudi: false,
         pagoCuotas: false,
     });
@@ -37,6 +58,26 @@ export default function RegisterPage() {
     const [aceptaTerminos, setAceptaTerminos] = useState(false);
     const [error, setError] = useState("");
     const [mensaje, setMensaje] = useState("");
+
+    // 🔐 Validación de contraseña segura
+    const validarContrasena = (password: string): boolean => {
+        const regex =
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+        return regex.test(password);
+    };
+
+    // 🔵 Validar edad mínima
+    const calcularEdad = (fechaNac: string): number => {
+        const hoy = new Date();
+        const cumple = new Date(fechaNac);
+        let edad = hoy.getFullYear() - cumple.getFullYear();
+        const mes = hoy.getMonth() - cumple.getMonth();
+
+        if (mes < 0 || (mes === 0 && hoy.getDate() < cumple.getDate())) {
+            edad--;
+        }
+        return edad;
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -56,42 +97,54 @@ export default function RegisterPage() {
             return;
         }
 
+        // 🔵 Validación de edad
+        const edad = calcularEdad(form.fechaNac);
+        if (edad < 18) {
+            setError("Debes tener al menos 18 años para registrarte.");
+            return;
+        }
+
+        if (!validarContrasena(form.contrasena)) {
+            setError(
+                "La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas, un número y un carácter especial."
+            );
+            return;
+        }
+
         if (!aceptaTerminos) {
             setError("Debes aceptar los términos y condiciones");
             return;
         }
 
-        try {
-            // 🧩 Armar objeto de envío
-            const data: any = {
-                nombre1: form.nombre1,
-                nombre2: form.nombre2,
-                apellido1: form.apellido1,
-                apellido2: form.apellido2,
-                fechaNac: form.fechaNac,
-                correo: form.correo,
-                tipoDocumento: form.tipoDocumento,
-                nroDocumento: form.nroDocumento,
-                calle: form.calle,
-                nroPuerta: form.nroPuerta,
-                apto: form.apto,
-                contrasena: form.contrasena,
-                tipoUsuario: form.tipoUsuario,
+        // Armar objeto tipado
+        const data: UsuarioRequest = {
+            nombre1: form.nombre1,
+            nombre2: form.nombre2 || undefined,
+            apellido1: form.apellido1,
+            apellido2: form.apellido2 || undefined,
+            fechaNac: form.fechaNac,
+            correo: form.correo,
+            tipoDocumento: form.tipoDocumento,
+            nroDocumento: form.nroDocumento,
+            calle: form.calle,
+            nroPuerta: form.nroPuerta,
+            apto: form.apto || undefined,
+            contrasena: form.contrasena,
+            tipoUsuario: form.tipoUsuario,
+        };
+
+        if (form.tipoUsuario === "Socio") {
+            data.socioDatos = {
+                lengSen: socioDatos.lengSen,
+                difAudi: socioDatos.difAudi,
+                pagoCuotas: socioDatos.pagoCuotas,
             };
+        }
 
-            // 👉 Si el usuario es Socio, agrega socioDatos
-            if (form.tipoUsuario === "Socio") {
-                data.socioDatos = {
-                    lengSeñas: socioDatos.lengSeñas,
-                    difAudi: socioDatos.difAudi,
-                    pagoCuotas: socioDatos.pagoCuotas,
-                };
-            }
-
-            console.log("📤 Enviando usuario:", data);
+        try {
             await crearUsuario(data);
-
             setMensaje("✅ Usuario registrado correctamente. Debe esperar a que su cuenta sea activada por un Administrador.");
+
             setTimeout(() => router.push("/"), 4000);
         } catch (error: any) {
             console.error(error);
@@ -317,8 +370,8 @@ export default function RegisterPage() {
                                         <label className="flex items-center gap-2">
                                             <input
                                                 type="checkbox"
-                                                name="lengSeñas"
-                                                checked={socioDatos.lengSeñas}
+                                                name="lengSen"
+                                                checked={socioDatos.lengSen}
                                                 onChange={handleSocioChange}
                                             />
                                             Usa lengua de señas

@@ -27,7 +27,7 @@ export interface Usuario {
 // ========================
 
 export interface SocioDatos {
-    lengSeñas: boolean;
+    lengSen: boolean;
     difAudi: boolean;
     pagoCuotas: boolean;
 }

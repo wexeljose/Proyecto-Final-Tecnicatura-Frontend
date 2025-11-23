@@ -6,7 +6,6 @@ import { getMisDatos, actualizarMisDatos } from "../../../app/services/usuarios"
 import { Usuario, UpdateUsuario } from "../../../types/usuarios";
 import { User, Mail, Calendar, Home, Lock, Hash } from "lucide-react";
 
-// 🔹 Extiende UpdateUsuario para permitir "contrasena" opcional
 type MisDatosForm = UpdateUsuario & { contrasena?: string };
 
 interface Props {
@@ -20,14 +19,33 @@ export default function MisDatosModal({ onClose }: Props) {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
+    // 🔐 Validación de contraseña segura
+    const validarContrasena = (password: string): boolean => {
+        const regex =
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+        return regex.test(password);
+    };
+
+    // 🔵 Calcular edad
+    const calcularEdad = (fechaNac: string): number => {
+        const hoy = new Date();
+        const cumple = new Date(fechaNac);
+        let edad = hoy.getFullYear() - cumple.getFullYear();
+        const mes = hoy.getMonth() - cumple.getMonth();
+
+        if (mes < 0 || (mes === 0 && hoy.getDate() < cumple.getDate())) {
+            edad--;
+        }
+        return edad;
+    };
+
     // ---------------------------
-    // 🟦 Cargar mis datos desde /usuarios/mis-datos
+    // Cargar datos del usuario
     // ---------------------------
     useEffect(() => {
         const cargarDatos = async () => {
             try {
-                const actual = await getMisDatos(); // 🔥 SOLO TUS DATOS
-
+                const actual = await getMisDatos();
                 setUsuario(actual);
 
                 setForm({
@@ -41,8 +59,7 @@ export default function MisDatosModal({ onClose }: Props) {
                     apto: actual.apto,
                 });
 
-            } catch (err) {
-                console.error(err);
+            } catch {
                 toast.error("Error al cargar tus datos ❌");
             } finally {
                 setLoading(false);
@@ -53,7 +70,7 @@ export default function MisDatosModal({ onClose }: Props) {
     }, []);
 
     // ---------------------------
-    // 🟦 Manejar cambios del formulario
+    // Manejo de cambios
     // ---------------------------
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -61,26 +78,40 @@ export default function MisDatosModal({ onClose }: Props) {
     };
 
     // ---------------------------
-    // 🟦 Enviar cambios
+    // Guardar cambios
     // ---------------------------
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
 
-        if (form.contrasena && form.contrasena !== repetirContrasena) {
-            toast.error("Las contraseñas no coinciden ❌");
-            return;
+        // 🔵 Validar edad si se modifica
+        if (form.fechaNac) {
+            const edad = calcularEdad(form.fechaNac);
+            if (edad < 18) {
+                toast.error("Debes tener al menos 18 años ❌");
+                return;
+            }
+        }
+
+        if (form.contrasena) {
+            if (!validarContrasena(form.contrasena)) {
+                toast.error("La contraseña debe tener 8 caracteres, mayúsculas, minúsculas, número y símbolo ❌");
+                return;
+            }
+
+            if (form.contrasena !== repetirContrasena) {
+                toast.error("Las contraseñas no coinciden ❌");
+                return;
+            }
         }
 
         try {
             setSaving(true);
-
             await actualizarMisDatos(form as UpdateUsuario);
 
             toast.success("Datos actualizados correctamente ✅");
             onClose();
 
-        } catch (error) {
-            console.error(error);
+        } catch {
             toast.error("Error al actualizar tus datos ❌");
         } finally {
             setSaving(false);
@@ -88,7 +119,7 @@ export default function MisDatosModal({ onClose }: Props) {
     };
 
     // ---------------------------
-    // 🟦 Loading UI
+    // Loading
     // ---------------------------
     if (loading)
         return (
@@ -102,7 +133,7 @@ export default function MisDatosModal({ onClose }: Props) {
     if (!usuario) return null;
 
     // ---------------------------
-    // 🟩 FORMULARIO COMPLETO
+    // FORMULARIO COMPLETO
     // ---------------------------
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -293,3 +324,4 @@ export default function MisDatosModal({ onClose }: Props) {
         </div>
     );
 }
+
