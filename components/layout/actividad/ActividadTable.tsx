@@ -5,9 +5,10 @@ interface Props {
   actividades: Actividad[];
   onEdit: (actividad: Actividad) => void;
   onDelete: (id: number) => void;
+  onView: (actividad: Actividad) => void;  // <-- AGREGADO
 }
 
-export default function ActividadTable({ actividades, onEdit, onDelete }: Props) {
+export default function ActividadTable({ actividades, onEdit, onDelete, onView }: Props) {
   if (!actividades.length) {
     return <p className="text-gray-600">No hay actividades registradas.</p>;
   }
@@ -25,6 +26,7 @@ export default function ActividadTable({ actividades, onEdit, onDelete }: Props)
           <th className="p-2 text-center">Acciones</th>
         </tr>
       </thead>
+
       <tbody>
         {actividades.map((a) => (
           <tr key={a.id} className="border-t hover:bg-gray-50">
@@ -34,13 +36,22 @@ export default function ActividadTable({ actividades, onEdit, onDelete }: Props)
             <td className="p-2">{a.duracion}</td>
             <td className="p-2">${a.costoTicket}</td>
             <td className="p-2">{a.estado || "Activo"}</td>
-            <td className="p-2 text-center">
+
+            <td className="p-2 text-center flex gap-2 justify-center">
+              <button
+                onClick={() => onView(a)}
+                className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+              >
+                Ver detalle
+              </button>
+
               <button
                 onClick={() => onEdit(a)}
-                className="bg-yellow-500 text-white px-3 py-1 rounded mr-2 hover:bg-yellow-600"
+                className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
               >
                 Editar
               </button>
+
               <button
                 onClick={() => onDelete(a.id)}
                 className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
