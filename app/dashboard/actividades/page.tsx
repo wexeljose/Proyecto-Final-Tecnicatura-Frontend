@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
+import { useSession } from "next-auth/react";
 
 // Servicios
 import {
@@ -19,8 +20,11 @@ import ActividadTable from "../../../components/layout/actividad/ActividadTable"
 import EditActividadModal from "../../../components/layout/actividad/ActividadEditModal";
 import CrearActividadModal from "../../../components/layout/actividad/ActividadCreateModal";
 import ActividadFiltrosLayout from "../../../components/layout/actividad/ActividadFiltrosLayout";
+import DetalleActividad from "../../../components/layout/actividad/DetalleActividad";
 
 export default function ListadoActividades() {
+  const { data: session } = useSession();
+
   const [actividades, setActividades] = useState<Actividad[]>([]);
   const [filtradas, setFiltradas] = useState<Actividad[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,9 +35,15 @@ export default function ListadoActividades() {
   const [filtroFechaInicio, setFiltroFechaInicio] = useState("");
   const [filtroFechaFin, setFiltroFechaFin] = useState("");
 
-  // Modales
+  // Modales y detalle
   const [crearModal, setCrearModal] = useState(false);
   const [selectedActividad, setSelectedActividad] = useState<Actividad | null>(null);
+  const [detalleActividad, setDetalleActividad] = useState<any | null>(null);
+
+  // Listas auxiliares (recursos y tipos)
+  const [recursos, setRecursos] = useState<any[]>([]);
+  const [tiposActividad, setTiposActividad] = useState<any[]>([]);
+  
 
   // Cargar actividades
   async function cargarActividades() {
@@ -50,34 +60,60 @@ export default function ListadoActividades() {
     }
   }
 
+async function cargarListasAuxiliares() {
+  if (!session?.accessToken) return;
+
+  try {
+    const token = session.accessToken;
+
+    const rec = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/recursos/lista`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const tipos = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/tipo-actividad/lista`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const recursosData = await rec.json();
+    const tiposData = await tipos.json();
+
+    setRecursos(recursosData);
+    setTiposActividad(tiposData);
+
+    console.log("👉 TIPOS DE ACTIVIDAD ->", tiposData);
+
+  } catch (err) {
+    console.error(err);
+    toast.error("Error al cargar listas auxiliares ❌");
+  }
+}
+
+
   useEffect(() => {
     cargarActividades();
-  }, []);
+    cargarListasAuxiliares();
+  }, [session]);
 
   // Aplicar filtros
   const aplicarFiltros = () => {
     let filtradasTmp = [...actividades];
 
-    // Nombre
     if (filtroNombre.trim()) {
       filtradasTmp = filtradasTmp.filter((a) =>
         a.nombre.toLowerCase().includes(filtroNombre.toLowerCase())
       );
     }
 
-    // Estado
     if (filtroEstado) {
       filtradasTmp = filtradasTmp.filter((a) => a.estado === filtroEstado);
     }
 
-    // Fecha inicio
     if (filtroFechaInicio) {
       filtradasTmp = filtradasTmp.filter(
         (a) => new Date(a.fechaAct) >= new Date(filtroFechaInicio)
       );
     }
 
-    // Fecha fin
     if (filtroFechaFin) {
       filtradasTmp = filtradasTmp.filter(
         (a) => new Date(a.fechaAct) <= new Date(filtroFechaFin)
@@ -126,7 +162,7 @@ export default function ListadoActividades() {
     }
   };
 
-  // Crear actividad
+  // Crear
   const handleCrear = async (data: any) => {
     try {
       await crearActividad(data);
@@ -137,6 +173,26 @@ export default function ListadoActividades() {
       toast.error("Error al crear");
     }
   };
+
+const handleView = (actividad: Actividad) => {
+  const recurso = recursos.find((r) => Number(r.id) === Number(actividad.idRecurso));
+
+  const tipo = tiposActividad.find(
+    (t) => Number(t.id) === Number(actividad.idTipoActividad)
+  );
+
+  console.log("ID tipo actividad:", actividad.idTipoActividad);
+  console.log("Lista tipos:", tiposActividad);
+  console.log("Tipo encontrado:", tipo);
+
+  setDetalleActividad({
+    ...actividad,
+    recursoNombre: recurso?.nombre ?? "Sin nombre",
+    tipoActividadNombre: tipo?.nombre ?? "Sin nombre",
+  });
+};
+
+
 
   if (loading) return <p>Cargando actividades...</p>;
 
@@ -150,6 +206,7 @@ export default function ListadoActividades() {
             actividades={filtradas}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onView={handleView}  
           />
         </div>
 
@@ -181,6 +238,18 @@ export default function ListadoActividades() {
           onClose={() => setCrearModal(false)}
           onCrear={handleCrear}
         />
+      )}
+
+      {}
+      {detalleActividad && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-3/4 max-w-2xl">
+            <DetalleActividad
+              actividad={detalleActividad}
+              onClose={() => setDetalleActividad(null)}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

@@ -14,6 +14,8 @@ export interface Actividad {
   estado: string;
   idRecurso: number;
   idTipoActividad: number;
+  recursoNombre?: string;
+  tipoActividadNombre?: string;
 }
 
 export interface CreateActividad {

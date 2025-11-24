@@ -38,7 +38,6 @@ const ActividadFiltrosLayout: React.FC<Props> = ({
   const validarYAplicar = () => {
     const nombreRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/;
 
-    // Validación nombre
     if (filtroNombre.trim()) {
       if (!nombreRegex.test(filtroNombre)) {
         toast.error("El nombre solo puede contener letras y espacios ❌");
@@ -51,7 +50,6 @@ const ActividadFiltrosLayout: React.FC<Props> = ({
       }
     }
 
-    // Validación fecha
     if (filtroFechaInicio && filtroFechaFin) {
       if (new Date(filtroFechaInicio) > new Date(filtroFechaFin)) {
         toast.error("La fecha de inicio no puede ser mayor que la fecha fin ❌");
@@ -62,7 +60,6 @@ const ActividadFiltrosLayout: React.FC<Props> = ({
     aplicarFiltros();
   };
 
-  // Autoaplicar filtros
   useEffect(() => {
     validarYAplicar();
   }, [filtroNombre, filtroEstado, filtroFechaInicio, filtroFechaFin]);
@@ -71,7 +68,7 @@ const ActividadFiltrosLayout: React.FC<Props> = ({
     <div className="w-72 p-4 border rounded-lg bg-gray-50 shadow-sm">
       <h2 className="text-lg font-semibold mb-4">Filtros</h2>
 
-      {/* Filtro nombre */}
+      {/* Nombre */}
       <div className="mb-3">
         <label className="block text-sm font-medium mb-1">Nombre</label>
         <input
@@ -83,7 +80,7 @@ const ActividadFiltrosLayout: React.FC<Props> = ({
         />
       </div>
 
-      {/* Filtro estado */}
+      {/* Estado */}
       <div className="mb-3">
         <label className="block text-sm font-medium mb-1">Estado</label>
         <select
@@ -97,7 +94,7 @@ const ActividadFiltrosLayout: React.FC<Props> = ({
         </select>
       </div>
 
-      {/* Fecha Inicio */}
+      {/* Fecha inicio */}
       <div className="mb-3">
         <label className="block text-sm font-medium mb-1">Fecha Inicio</label>
         <input
@@ -108,7 +105,7 @@ const ActividadFiltrosLayout: React.FC<Props> = ({
         />
       </div>
 
-      {/* Fecha Fin */}
+      {/* Fecha fin */}
       <div className="mb-3">
         <label className="block text-sm font-medium mb-1">Fecha Fin</label>
         <input
@@ -120,30 +117,27 @@ const ActividadFiltrosLayout: React.FC<Props> = ({
       </div>
 
       {/* Botones */}
-      <div className="flex flex-col gap-2 mt-4">
-        <button
-          onClick={validarYAplicar}
-          className="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-        >
-          Aplicar filtros
-        </button>
+  <div className="flex flex-col gap-2 mt-4">
 
-        <button
-          onClick={limpiarFiltros}
-          className="bg-gray-600 text-white py-2 rounded hover:bg-gray-700 transition"
-        >
-          Limpiar filtros
-        </button>
+  <button
+    onClick={limpiarFiltros}
+    className="bg-gray-600 text-white py-2 rounded hover:bg-gray-700 transition"
+  >
+    Limpiar filtros
+  </button>
 
-        <button
-          onClick={onCrear}
-          className="bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
-        >
-          + Nueva Actividad
-        </button>
-      </div>
+  <button
+    onClick={onCrear}
+    className="bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
+  >
+    + Nueva Actividad
+  </button>
+
+</div>
+
     </div>
   );
 };
 
 export default ActividadFiltrosLayout;
+

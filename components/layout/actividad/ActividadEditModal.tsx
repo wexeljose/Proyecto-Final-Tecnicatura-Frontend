@@ -184,7 +184,7 @@ export default function EditActividadModal({ actividad, onClose, onSave }: Props
           >
             <option value="">Seleccionar estado</option>
             <option value="Activo">Activo</option>
-            <option value="Inactivos">Inactivo</option>
+            <option value="Inactivos">Inactivos</option>
           </select>
 
           <div className="col-span-2 flex justify-end gap-2 mt-4">
