@@ -10,7 +10,6 @@ import {
     CreditCard,
     Building2,
     ClipboardList,
-    MapPin,
     FileSearch,
     ShieldCheck,
 } from "lucide-react";
@@ -114,12 +113,13 @@ const menuItems: MenuItem[] = [
         roles: ["AuxiliarAdm", "Socio", "NoSocio"],
     },
     {
-        href: "/dashboard/ubicaciones",
-        icon: <MapPin size={18} />,
-        label: "Ubicaciones",
-        tooltip: "Gestión de ubicaciones",
+        href: "/dashboard/reportes",
+        icon: <FileSearch size={18} />,
+        label: "Reportes",
+        tooltip: "Reportes del sistema",
         roles: ["AuxiliarAdm"],
     },
+
     {
         href: "/dashboard/auditorias",
         icon: <FileSearch size={18} />,
