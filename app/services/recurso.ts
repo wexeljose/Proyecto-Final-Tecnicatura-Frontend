@@ -38,10 +38,26 @@ export async function obtenerRecurso(id: number): Promise<Recurso> {
 }
 
 // Listar por estado
-export async function listarRecursosPorEstado(estado: "Activos"|"Inactivos"|"Sin_validar"): Promise<Recurso[]> {
-    const r = await authFetch(`/recursos/lista/estado?estado=${encodeURIComponent(estado)}`, { method: "GET" });
-    return r.json();
+export async function listarRecursosPorEstado(estado: "Activos"|"Inactivos"|"Sin_validar") {
+    const sesion = await getSession();
+    const tipo = sesion?.user?.tipoUsuario;
+
+    // ✅ AuxiliarAdm: puede ver estados
+    if (tipo === "AuxiliarAdm") {
+        const r = await authFetch(`/recursos/lista/estado?estado=${encodeURIComponent(estado)}`, { method: "GET" });
+        return r.json();
+    }
+
+    // ✅ Socio: devuelve lista normal
+    if (tipo === "Socio") {
+        const r = await authFetch(`/recursos/lista`, { method: "GET" });
+        return r.json();
+    }
+
+    // ✅ NoSocio: NO puede ver recursos
+    return [];
 }
+
 
 // Buscar por nombre que contenga
 export async function buscarRecursosPorNombre(nombre: string): Promise<Recurso[]> {
