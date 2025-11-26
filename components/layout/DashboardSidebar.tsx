@@ -110,7 +110,7 @@ const menuItems: MenuItem[] = [
         icon: <ClipboardList size={18} />,
         label: "Reservas",
         tooltip: "Reservar actividades o espacios",
-        roles: ["AuxiliarAdm", "Socio", "NoSocio"],
+        roles: ["AuxiliarAdm", "Socio"],
     },
     {
         href: "/dashboard/reportes",

@@ -59,14 +59,12 @@ export default function RegisterPage() {
     const [error, setError] = useState("");
     const [mensaje, setMensaje] = useState("");
 
-    // 🔐 Validación de contraseña segura
     const validarContrasena = (password: string): boolean => {
         const regex =
             /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
         return regex.test(password);
     };
 
-    // 🔵 Validar edad mínima
     const calcularEdad = (fechaNac: string): number => {
         const hoy = new Date();
         const cumple = new Date(fechaNac);
@@ -80,11 +78,11 @@ export default function RegisterPage() {
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+        setForm({...form, [e.target.name]: e.target.value});
     };
 
     const handleSocioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSocioDatos({ ...socioDatos, [e.target.name]: e.target.checked });
+        setSocioDatos({...socioDatos, [e.target.name]: e.target.checked});
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -97,7 +95,6 @@ export default function RegisterPage() {
             return;
         }
 
-        // 🔵 Validación de edad
         const edad = calcularEdad(form.fechaNac);
         if (edad < 18) {
             setError("Debes tener al menos 18 años para registrarte.");
@@ -116,7 +113,6 @@ export default function RegisterPage() {
             return;
         }
 
-        // Armar objeto tipado
         const data: UsuarioRequest = {
             nombre1: form.nombre1,
             nombre2: form.nombre2 || undefined,
@@ -144,13 +140,47 @@ export default function RegisterPage() {
         try {
             await crearUsuario(data);
             setMensaje("✅ Usuario registrado correctamente. Debe esperar a que su cuenta sea activada por un Administrador.");
-
             setTimeout(() => router.push("/"), 4000);
-        } catch (error: any) {
-            console.error(error);
-            setError(error.message || "Error al registrar el usuario");
+
+        } catch (err) {
+            console.error("Error al registrar:", err);
+
+            let mensajeError = "Error al registrar el usuario";
+
+            // Obtener mensaje válido si existe
+            if (err instanceof Error && err.message) {
+                mensajeError = err.message;
+            }
+
+            // Intentar parsear si viene como JSON
+            try {
+                const parsed = JSON.parse(mensajeError);
+                if (parsed && typeof parsed === "object" && "error" in parsed) {
+                    mensajeError = parsed.error;
+                }
+            } catch {
+                // No era JSON — continuar sin errores
+            }
+
+            // Normalizar mensajes comunes
+            const normalizado = mensajeError.toLowerCase();
+
+            if (normalizado.includes("correo") || normalizado.includes("email")) {
+                mensajeError = "Este correo ya está registrado. Por favor, utilizá otro.";
+            }
+
+            if (
+                normalizado.includes("documento") ||
+                normalizado.includes("cédula") ||
+                normalizado.includes("ci")
+            ) {
+                mensajeError = "Este documento ya está registrado en el sistema.";
+            }
+
+            setError(mensajeError);
         }
     };
+
 
     return (
         <main className="min-h-screen flex flex-col bg-gray-50 text-gray-900">
@@ -171,7 +201,7 @@ export default function RegisterPage() {
                 <div className="flex items-center justify-center md:w-1/2 px-6 py-12">
                     <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-lg border border-gray-100">
                         <div className="flex justify-center mb-6">
-                            <img src="/asur-logo.png" alt="Logo ASUR" className="h-20 w-auto" />
+                            <img src="/asur-logo.png" alt="Logo ASUR" className="h-20 w-auto"/>
                         </div>
 
                         <h2 className="text-center text-2xl font-bold mb-6 text-blue-800">
@@ -182,7 +212,7 @@ export default function RegisterPage() {
                             {/* Nombres y apellidos */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div className="relative">
-                                    <User className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                                    <User className="absolute left-3 top-2.5 text-gray-400" size={18}/>
                                     <input
                                         name="nombre1"
                                         placeholder="Primer nombre"
@@ -193,7 +223,7 @@ export default function RegisterPage() {
                                     />
                                 </div>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                                    <User className="absolute left-3 top-2.5 text-gray-400" size={18}/>
                                     <input
                                         name="nombre2"
                                         placeholder="Segundo nombre (opcional)"
@@ -206,7 +236,7 @@ export default function RegisterPage() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div className="relative">
-                                    <User className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                                    <User className="absolute left-3 top-2.5 text-gray-400" size={18}/>
                                     <input
                                         name="apellido1"
                                         placeholder="Primer apellido"
@@ -217,7 +247,7 @@ export default function RegisterPage() {
                                     />
                                 </div>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                                    <User className="absolute left-3 top-2.5 text-gray-400" size={18}/>
                                     <input
                                         name="apellido2"
                                         placeholder="Segundo apellido"
@@ -231,7 +261,7 @@ export default function RegisterPage() {
                             {/* Fecha de nacimiento y correo */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div className="relative">
-                                    <Calendar className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                                    <Calendar className="absolute left-3 top-2.5 text-gray-400" size={18}/>
                                     <input
                                         type="date"
                                         name="fechaNac"
@@ -242,7 +272,7 @@ export default function RegisterPage() {
                                     />
                                 </div>
                                 <div className="relative">
-                                    <Mail className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                                    <Mail className="absolute left-3 top-2.5 text-gray-400" size={18}/>
                                     <input
                                         type="email"
                                         name="correo"
@@ -271,7 +301,7 @@ export default function RegisterPage() {
                                     </select>
                                 </div>
                                 <div className="relative">
-                                    <Hash className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                                    <Hash className="absolute left-3 top-2.5 text-gray-400" size={18}/>
                                     <input
                                         name="nroDocumento"
                                         placeholder="Número de documento"
@@ -286,7 +316,7 @@ export default function RegisterPage() {
                             {/* Domicilio */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div className="relative">
-                                    <Home className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                                    <Home className="absolute left-3 top-2.5 text-gray-400" size={18}/>
                                     <input
                                         name="calle"
                                         placeholder="Calle"
@@ -297,7 +327,7 @@ export default function RegisterPage() {
                                     />
                                 </div>
                                 <div className="relative">
-                                    <Home className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                                    <Home className="absolute left-3 top-2.5 text-gray-400" size={18}/>
                                     <input
                                         name="nroPuerta"
                                         placeholder="Número de puerta"
@@ -310,7 +340,7 @@ export default function RegisterPage() {
                             </div>
 
                             <div className="relative">
-                                <Home className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                                <Home className="absolute left-3 top-2.5 text-gray-400" size={18}/>
                                 <input
                                     name="apto"
                                     placeholder="Apartamento (opcional)"
@@ -323,7 +353,7 @@ export default function RegisterPage() {
                             {/* Contraseñas */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                                    <Lock className="absolute left-3 top-2.5 text-gray-400" size={18}/>
                                     <input
                                         type="password"
                                         name="contrasena"
@@ -335,7 +365,7 @@ export default function RegisterPage() {
                                     />
                                 </div>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                                    <Lock className="absolute left-3 top-2.5 text-gray-400" size={18}/>
                                     <input
                                         type="password"
                                         name="repetirContrasena"
@@ -418,7 +448,8 @@ export default function RegisterPage() {
                             {/* Mensajes */}
                             {error && <p className="text-center text-red-500 text-sm font-medium mt-2">{error}</p>}
                             {mensaje && (
-                                <div className="mt-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded-md text-center animate-fadeIn">
+                                <div
+                                    className="mt-4 p-3 bg-green-100 border border-green-400 text-green-800 rounded-md text-center animate-fadeIn">
                                     {mensaje}
                                 </div>
                             )}
@@ -449,9 +480,11 @@ export default function RegisterPage() {
             </div>
 
             <footer className="w-full bg-blue-900 text-white py-4 shadow-inner">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center px-6 text-center md:text-left">
+                <div
+                    className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center px-6 text-center md:text-left">
                     <p className="text-xs">
-                        © {new Date().getFullYear()} Asociación de Sordos del Uruguay — Todos los derechos reservados.
+                        © {new Date().getFullYear()} Asociación de Sordos del Uruguay — Todos los derechos
+                        reservados.
                     </p>
                     <p className="text-xs text-blue-200 mt-1 md:mt-0">
                         Desarrollado por el equipo de proyecto MAVATECH – UTEC.
@@ -461,9 +494,16 @@ export default function RegisterPage() {
 
             <style jsx>{`
                 @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(-5px); }
-                    to { opacity: 1; transform: translateY(0); }
+                    from {
+                        opacity: 0;
+                        transform: translateY(-5px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
                 }
+
                 .animate-fadeIn {
                     animation: fadeIn 0.5s ease-in-out;
                 }

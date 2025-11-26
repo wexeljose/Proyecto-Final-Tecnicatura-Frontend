@@ -10,41 +10,52 @@ export async function middleware(req: any) {
         return NextResponse.redirect(new URL("/login", req.url));
     }
 
-    const tipoUsuario = token.tipoUsuario; // 👈 este es el correcto
+    const tipoUsuario = (token?.tipoUsuario ?? "") as string;
 
     // ✅ Rutas SOLO AuxiliarAdm
     const auxiliarRoutes = [
         "/dashboard/usuarios",
         "/dashboard/perfiles",
         "/dashboard/funcionalidades",
-        "/dashboard/auditoria",
+        "/dashboard/actividades",            // 👈 creación de actividades
+        "/dashboard/tipo-actividad",
+        "/dashboard/recursos",
         "/dashboard/pagos",
-        "/dashboard/actividades/admin",
-        "/dashboard/espacios/admin",
-        "/dashboard/tipos-actividad"
+        "/dashboard/auditorias",
+        "/dashboard/reportes"
     ];
 
     if (auxiliarRoutes.some(r => url.startsWith(r)) && tipoUsuario !== "AuxiliarAdm") {
         return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
 
-    // ✅ Rutas disponibles para Socio y NoSocio (y también AuxiliarAdm)
+    // ✅ Rutas para AuxiliarAdm y Socio, pero NO NoSocio
+    const socioAndAuxRoutes = [
+        "/dashboard/reserva" // 👈 reservas solo Socio + Aux
+    ];
+
+    if (socioAndAuxRoutes.some(r => url.startsWith(r)) && !["AuxiliarAdm", "Socio"].includes(tipoUsuario)) {
+        return NextResponse.redirect(new URL("/unauthorized", req.url));
+    }
+
+    // ✅ Rutas accesibles para TODOS los autenticados
     const usuarioAutenticadoRoutes = [
         "/dashboard",
         "/dashboard/mis-datos",
-        "/dashboard/actividades",
-        "/dashboard/reservas"
+        "/dashboard/inscripcion-actividades" // 👈 inscripción para todos
     ];
 
     if (usuarioAutenticadoRoutes.some(r => url.startsWith(r))) {
         return NextResponse.next();
     }
 
-    // ✅ Si cae aquí → no tiene permisos
+    // ✅ Todo lo demás → no autorizado
     return NextResponse.redirect(new URL("/unauthorized", req.url));
 }
 
 export const config = {
     matcher: ["/dashboard/:path*"],
 };
+
+
 
