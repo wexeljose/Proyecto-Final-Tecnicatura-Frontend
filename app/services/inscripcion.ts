@@ -226,3 +226,42 @@ export async function getReporteInscripciones({
 
   return res.json();
 }
+
+// 📋 Nuevo método para reporte por tipo de actividad
+export async function getReporteInscripcionesPorTipo({
+  fechaDesde,
+  fechaHasta,
+  cancelada,
+  tiposActividad,
+}: {
+  fechaDesde: string;
+  fechaHasta: string;
+  cancelada: boolean | null;
+  tiposActividad: number[];
+}): Promise<InscripcionActividadReporte[]> {
+  const params = new URLSearchParams({
+    desde: fechaDesde,
+    hasta: fechaHasta,
+  });
+
+  if (cancelada !== null) params.append("cancelada", String(cancelada));
+  if (tiposActividad.length > 0)
+    tiposActividad.forEach((id) => params.append("tiposActividad", String(id)));
+
+  const session = await getSession();
+  const token = session?.accessToken;
+
+  const res = await fetch(`${API_URL}/inscripciones/reportes/tipos?${params}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Error al obtener el reporte de inscripciones por tipo.");
+  }
+
+  return res.json();
+}

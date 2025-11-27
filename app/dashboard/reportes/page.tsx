@@ -20,6 +20,17 @@ export default function ReportesIndexPage() {
           </Link>
         </div>
 
+        {/* Reporte de Inscripciones por Tipo */}
+        <div className="border rounded-xl bg-white shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+          <h2 className="text-xl font-semibold mb-2">Reporte por Tipo de Actividad</h2>
+          <p className="text-gray-500 text-sm mb-4">Analiza inscripciones según el tipo de actividad.</p>
+          <Link href="reportes/inscripciones-tipo-actividad" className="block text-center">
+            <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors">
+              Ver Reporte
+            </button>
+          </Link>
+        </div>
+
         {/* Placeholder para futuros reportes */}
         <div className="border rounded-xl bg-white shadow-md p-6 opacity-60 cursor-not-allowed">
           <h2 className="text-xl font-semibold mb-2">Reporte de Actividades</h2>
