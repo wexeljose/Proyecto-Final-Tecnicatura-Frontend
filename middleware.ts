@@ -17,7 +17,7 @@ export async function middleware(req: any) {
         "/dashboard/usuarios",
         "/dashboard/perfiles",
         "/dashboard/funcionalidades",
-        "/dashboard/actividades",            // 👈 creación de actividades
+        "/dashboard/actividades",
         "/dashboard/tipo-actividad",
         "/dashboard/recursos",
         "/dashboard/pagos",
