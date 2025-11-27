@@ -42,3 +42,18 @@ main > section:last-child {
 .animate-fadeIn {
     animation: fadeIn 0.15s ease-out;
 }
+/* evita que cualquier capa recorte el toast */
+[data-sonner-toaster],
+[data-hot-toast],
+.toast-portal,
+.toast-container {
+    overflow: visible !important;
+    pointer-events: auto !important;
+    z-index: 999999 !important;
+}
+
+body,
+html,
+#__next {
+    overflow: visible !important;
+}
